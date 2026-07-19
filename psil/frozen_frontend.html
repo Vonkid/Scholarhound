@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ScholarHound - Trajectory Map</title>
+<style>
+:root {
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-300: #cbd5e1;
+  --slate-400: #94a3b8;
+  --slate-500: #64748b;
+  --slate-600: #475569;
+  --slate-700: #334155;
+  --slate-800: #1e293b;
+  --slate-900: #0f172a;
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-500: #f59e0b;
+  --amber-600: #d97706;
+  --amber-700: #b45309;
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-600: #dc2626;
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-600: #ea580c;
+  --yellow-50: #fefce8;
+  --yellow-100: #fef9c3;
+  --yellow-600: #ca8a04;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-600: #2563eb;
+  --green-50: #ecfdf5;
+  --green-100: #dcfce7;
+  --green-700: #15803d;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--slate-50);
+  color: var(--slate-800);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+.hidden { display: none !important; }
+.nav-shell {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid var(--slate-200);
+  backdrop-filter: blur(10px);
+}
+.nav-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0 16px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 210px;
+}
+.brand-icon { font-size: 24px; line-height: 1; }
+.brand-text {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--amber-700);
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 100%;
+}
+.nav-btn {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  min-height: 38px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--slate-600);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.nav-btn:hover { background: var(--slate-100); }
+.nav-btn.active {
+  background: var(--amber-50);
+  color: var(--amber-700);
+}
+main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 32px 16px 48px;
+}
+.card {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  transition: box-shadow .2s, border-color .2s, transform .2s;
+}
+.card:hover { box-shadow: 0 12px 40px rgba(15,23,42,.08); }
+.grid { display: grid; gap: 16px; }
+.stats-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 16px; }
+.concept-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.two-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, .55fr); }
+.stat-card {
+  padding: 20px;
+  min-height: 106px;
+}
+.stat-value {
+  margin: 0;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--slate-900);
+  font-weight: 800;
+}
+.stat-label {
+  margin: 8px 0 0;
+  color: var(--slate-400);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: .04em;
+}
+.stat-note {
+  margin: 9px 0 0;
+  color: var(--slate-500);
+  font-size: 13px;
+}
+.section-title {
+  margin: 0 0 16px;
+  color: var(--slate-800);
+  font-size: 18px;
+  font-weight: 700;
+}
+.process-row { margin: 0 0 32px; }
+.process-card {
+  display: grid;
+  grid-template-columns: minmax(0, .72fr) minmax(280px, .28fr);
+  gap: 16px;
+  padding: 16px;
+}
+.process-title {
+  margin: 0;
+  color: var(--slate-800);
+  font-weight: 700;
+}
+.process-meta {
+  margin-top: 7px;
+  color: var(--slate-500);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.process-badges {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  border-radius: 999px;
+  border: 1px solid var(--slate-200);
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.badge-green { color: var(--green-700); background: var(--green-50); border-color: var(--green-100); }
+.badge-red { color: var(--red-600); background: var(--red-50); border-color: var(--red-100); }
+.badge-blue { color: var(--blue-600); background: var(--blue-50); border-color: var(--blue-100); }
+.badge-amber { color: var(--amber-700); background: var(--amber-50); border-color: var(--amber-100); }
+.badge-slate { color: var(--slate-600); background: var(--slate-50); border-color: var(--slate-200); }
+.tier-HIGH-PRIORITY { border-left: 4px solid var(--red-600); }
+.tier-IMPORTANT { border-left: 4px solid var(--orange-600); }
+.tier-POTENTIAL { border-left: 4px solid var(--yellow-600); }
+.tier-WATCHLIST { border-left: 4px solid var(--blue-600); }
+.paper-card {
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+.paper-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.paper-title {
+  margin: 10px 0 0;
+  color: var(--slate-800);
+  font-weight: 700;
+  line-height: 1.35;
+}
+.paper-meta {
+  margin-top: 5px;
+  color: var(--slate-400);
+  font-size: 13px;
+}
+.paper-score {
+  color: var(--slate-800);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+}
+.muted { color: var(--slate-400); }
+.concept-card { padding: 18px; min-height: 110px; }
+.concept-name { color: var(--slate-800); font-weight: 700; }
+.concept-meta { margin-top: 8px; color: var(--slate-400); font-size: 13px; }
+.tier-menu { margin-bottom: 32px; }
+.tier-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.tier-menu-list { display: grid; gap: 8px; }
+.tier-menu-item {
+  padding: 13px;
+  border-radius: 10px;
+  border: 1px solid var(--slate-100);
+  background: var(--slate-50);
+}
+.digest-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.digest-toolbar input, .digest-toolbar select {
+  border: 1px solid var(--slate-300);
+  border-radius: 10px;
+  min-height: 40px;
+  padding: 8px 11px;
+  color: var(--slate-700);
+  background: #fff;
+}
+.trajectory-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.trajectory-switcher {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.trajectory-switch {
+  border: 1px solid var(--slate-200);
+  background: #fff;
+  color: var(--slate-600);
+  border-radius: 10px;
+  min-height: 66px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 12px;
+}
+.trajectory-switch.active {
+  background: var(--slate-900);
+  color: #fff;
+  border-color: var(--slate-900);
+}
+.trajectory-stage {
+  min-height: 560px;
+  overflow: hidden;
+}
+.trajectory-loading {
+  min-height: 560px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+.trajectory-loading-inner {
+  width: min(520px, 100%);
+  display: grid;
+  gap: 14px;
+}
+.trajectory-loading-line,
+.trajectory-loading-node {
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(101,240,223,.08), rgba(216,182,111,.14), rgba(101,240,223,.08));
+  background-size: 220% 100%;
+  animation: trajectoryLoading 1.4s ease-in-out infinite;
+}
+.trajectory-loading-line {
+  height: 12px;
+}
+.trajectory-loading-line.short {
+  width: 62%;
+}
+.trajectory-loading-nodes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.trajectory-loading-node {
+  min-height: 84px;
+  border: 1px solid rgba(101,240,223,.12);
+}
+.trajectory-svg {
+  display: block;
+  width: 100%;
+  min-height: 560px;
+}
+.trajectory-link {
+  stroke-dasharray: 6 10;
+  animation: trajectoryFlow 12s linear infinite;
+}
+.trajectory-link-active {
+  stroke-dasharray: 10 9;
+  animation: trajectoryFlow 4.8s linear infinite;
+}
+.trajectory-node {
+  transition: filter .2s ease;
+}
+.trajectory-node:hover {
+  filter: drop-shadow(0 10px 18px rgba(15,23,42,.16));
+}
+.trajectory-selected-ring {
+  fill: none;
+  stroke-width: 2;
+  opacity: .55;
+  animation: trajectoryPulse 2.4s ease-out infinite;
+}
+.trajectory-label-card {
+  height: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 10px 28px rgba(15,23,42,.08);
+  overflow: hidden;
+}
+.trajectory-label-type {
+  color: var(--slate-500);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.trajectory-label-title {
+  margin-top: 4px;
+  color: var(--slate-900);
+  font-size: 12px;
+  line-height: 1.22;
+  font-weight: 750;
+}
+.trajectory-label-meta {
+  margin-top: 5px;
+  color: var(--slate-400);
+  font-size: 10px;
+}
+.trajectory-panel { margin-top: 20px; }
+.trajectory-node-card { padding: 18px; margin-bottom: 12px; }
+.empty {
+  padding: 24px;
+  color: var(--slate-400);
+  border: 1px dashed var(--slate-300);
+  border-radius: 12px;
+  background: #fff;
+}
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  overflow-y: auto;
+  padding: 40px 16px;
+  background: rgba(15,23,42,.5);
+}
+.modal.open { display: block; }
+.modal-card {
+  position: relative;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 28px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(15,23,42,.22);
+}
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  background: transparent;
+  color: var(--slate-400);
+  font-size: 26px;
+  line-height: 1;
+}
+.score-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.score-cell {
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--slate-50);
+}
+.score-num { font-size: 24px; font-weight: 800; color: var(--slate-900); }
+.score-label { margin-top: 4px; color: var(--slate-400); font-size: 11px; }
+.toc-card, .workflow-card, .bullet-block {
+  margin: 18px 0;
+  border: 1px solid var(--slate-200);
+  border-radius: 12px;
+  background: #fff;
+  padding: 16px;
+}
+.toc-card {
+  border-color: var(--green-100);
+  background: #fbfffd;
+}
+.toc-image {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border: 1px solid var(--slate-100);
+  border-radius: 10px;
+  background: var(--slate-50);
+}
+.workflow-card {
+  border-color: var(--blue-100);
+}
+.workflow-steps {
+  display: grid;
+  gap: 12px;
+}
+.workflow-step {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  gap: 10px;
+}
+.workflow-index {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--blue-600);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+.workflow-label {
+  color: var(--slate-400);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.workflow-text {
+  margin-top: 2px;
+  color: var(--slate-700);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.bullet-block {
+  background: var(--slate-50);
+}
+.bullet-block.weakness {
+  background: var(--orange-50);
+  border-color: var(--orange-100);
+}
+.bullet-title {
+  margin: 0 0 10px;
+  color: var(--slate-700);
+  font-weight: 800;
+}
+.bullet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.bullet-list li {
+  display: flex;
+  gap: 9px;
+  color: var(--slate-600);
+  font-size: 14px;
+  line-height: 1.55;
+}
+.bullet-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  margin-top: 8px;
+  flex: 0 0 auto;
+  background: var(--slate-400);
+}
+.weakness .bullet-dot {
+  background: var(--orange-600);
+}
+@keyframes trajectoryFlow { to { stroke-dashoffset: -96; } }
+@keyframes trajectoryLoading {
+  0% { background-position: 120% 0; opacity: .58; }
+  50% { opacity: .95; }
+  100% { background-position: -120% 0; opacity: .58; }
+}
+@keyframes trajectoryPulse {
+  0% { r: 24; opacity: .5; }
+  70% { r: 36; opacity: 0; }
+  100% { r: 36; opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trajectory-link, .trajectory-link-active, .trajectory-selected-ring, .trajectory-loading-line, .trajectory-loading-node { animation: none !important; }
+}
+@media (max-width: 980px) {
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .concept-grid, .two-grid, .process-card { grid-template-columns: 1fr; }
+  .process-badges { justify-content: flex-start; }
+  .trajectory-switcher { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 680px) {
+  .nav-inner { align-items: flex-start; flex-direction: column; padding: 12px 14px; }
+  .brand { min-width: 0; }
+  .nav-links { width: 100%; }
+  main { padding: 24px 14px 40px; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-card { padding: 16px; }
+  .stat-value { font-size: 28px; }
+  .digest-toolbar, .trajectory-header { align-items: flex-start; flex-direction: column; }
+  .score-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* DESIGN.md-inspired dark operations skin */
+:root {
+  --ops-canvas: #030706;
+  --ops-canvas-2: #071211;
+  --ops-surface: rgba(12, 30, 29, .74);
+  --ops-surface-strong: rgba(16, 42, 40, .9);
+  --ops-surface-soft: rgba(18, 47, 44, .52);
+  --ops-line: rgba(107, 150, 140, .26);
+  --ops-line-strong: rgba(216, 182, 111, .55);
+  --ops-teal: #65f0df;
+  --ops-teal-soft: #38c6bd;
+  --ops-amber: #d8b66f;
+  --ops-amber-soft: #f1d08a;
+  --ops-wine: #7a303a;
+  --ops-ink: #f2f7f5;
+  --ops-body: #b8c9c5;
+  --ops-muted: #748985;
+  --slate-50: #081311;
+  --slate-100: #102220;
+  --slate-200: #1e3a36;
+  --slate-300: #325953;
+  --slate-400: #78918d;
+  --slate-500: #9fb2ae;
+  --slate-600: #c3d0cd;
+  --slate-700: #dce7e4;
+  --slate-800: #eef5f2;
+  --slate-900: #ffffff;
+  --amber-50: rgba(216, 182, 111, .13);
+  --amber-100: rgba(216, 182, 111, .28);
+  --amber-500: #d8b66f;
+  --amber-600: #e8c77f;
+  --amber-700: #f2d695;
+  --red-50: rgba(122, 48, 58, .28);
+  --red-100: rgba(173, 72, 82, .36);
+  --red-600: #d66a72;
+  --orange-50: rgba(216, 128, 75, .16);
+  --orange-100: rgba(216, 128, 75, .3);
+  --orange-600: #d89054;
+  --yellow-50: rgba(216, 182, 111, .13);
+  --yellow-100: rgba(216, 182, 111, .28);
+  --yellow-600: #d8b66f;
+  --blue-50: rgba(101, 240, 223, .11);
+  --blue-100: rgba(101, 240, 223, .24);
+  --blue-600: #65f0df;
+  --green-50: rgba(93, 210, 169, .12);
+  --green-100: rgba(93, 210, 169, .24);
+  --green-700: #74e0bf;
+}
+* { letter-spacing: 0 !important; }
+body {
+  background:
+    linear-gradient(90deg, #000 0%, var(--ops-canvas) 18%, #071513 52%, #020403 100%);
+  color: var(--ops-ink);
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, transparent 0 31%, rgba(68, 150, 140, .13) 48%, transparent 72%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 78px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 78px);
+  opacity: .42;
+  mix-blend-mode: screen;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,.72), transparent 16%, transparent 82%, rgba(0,0,0,.68));
+}
+button, input, select { color-scheme: dark; }
+.nav-shell {
+  background: linear-gradient(180deg, rgba(2,7,6,.94), rgba(2,7,6,.62));
+  border-bottom: 1px solid rgba(216, 182, 111, .13);
+  box-shadow: 0 1px 0 rgba(101,240,223,.06), 0 18px 50px rgba(0,0,0,.28);
+}
+.nav-inner {
+  max-width: 1560px;
+  min-height: 70px;
+  padding: 0 22px;
+}
+.brand {
+  min-width: 260px;
+}
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(216,182,111,.34);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(216,182,111,.13), rgba(6,16,15,.7));
+  box-shadow: 0 0 24px rgba(216,182,111,.12) inset;
+}
+.brand-text {
+  color: var(--ops-amber-soft);
+  font-size: 17px;
+  font-weight: 700;
+}
+.brand::after {
+  content: "Research OS";
+  color: var(--ops-body);
+  font-size: 12px;
+  margin-left: -4px;
+}
+.nav-links {
+  gap: 8px;
+}
+.nav-btn {
+  min-height: 40px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border-color: rgba(101,240,223,.17);
+  background: linear-gradient(180deg, rgba(24,76,76,.5), rgba(8,23,23,.82));
+  color: var(--ops-body);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px rgba(0,0,0,.26);
+}
+.nav-btn:hover {
+  background: linear-gradient(180deg, rgba(35,103,99,.66), rgba(12,33,32,.9));
+  color: var(--ops-ink);
+}
+.nav-btn.active {
+  color: var(--ops-amber-soft);
+  border-color: rgba(216,182,111,.5);
+  background: linear-gradient(180deg, rgba(216,182,111,.16), rgba(11,31,30,.9));
+}
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1560px;
+  padding: 28px 22px 56px;
+}
+.card {
+  background: linear-gradient(180deg, rgba(18, 43, 41, .82), rgba(8, 20, 19, .9));
+  border: 1px solid var(--ops-line);
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 22px 70px rgba(0,0,0,.24);
+}
+.card:hover {
+  border-color: rgba(101, 240, 223, .33);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 28px rgba(101,240,223,.06);
+}
+.section-title {
+  color: var(--ops-ink);
+  font-weight: 650;
+}
+.stat-card {
+  min-height: 112px;
+  padding: 18px;
+}
+.stat-value {
+  color: var(--ops-ink);
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 31px;
+  font-weight: 650;
+}
+.stat-label {
+  color: var(--ops-amber);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+.stat-note,
+.process-meta,
+.paper-meta,
+.concept-meta,
+.muted {
+  color: var(--ops-muted);
+}
+.process-card {
+  background: linear-gradient(105deg, rgba(13, 31, 30, .86), rgba(23, 58, 55, .55));
+  border-color: rgba(101,240,223,.2);
+}
+.process-title,
+.concept-name,
+.paper-title {
+  color: var(--ops-ink);
+}
+.badge {
+  border-radius: 999px;
+  border-color: rgba(101,240,223,.22);
+  background: rgba(9, 24, 23, .78);
+  color: var(--ops-body);
+  font-weight: 650;
+}
+.badge-green { color: #7ee7bd; background: rgba(50,180,133,.12); border-color: rgba(93,210,169,.28); }
+.badge-red { color: #f0a2a8; background: rgba(122,48,58,.22); border-color: rgba(214,106,114,.34); }
+.badge-blue { color: var(--ops-teal); background: rgba(101,240,223,.1); border-color: rgba(101,240,223,.28); }
+.badge-amber { color: var(--ops-amber-soft); background: rgba(216,182,111,.12); border-color: rgba(216,182,111,.36); }
+.badge-slate { color: var(--ops-body); background: rgba(255,255,255,.04); border-color: var(--ops-line); }
+.paper-card,
+.concept-card,
+.trajectory-node-card,
+.tier-menu-item {
+  background: linear-gradient(180deg, rgba(15, 37, 35, .86), rgba(7, 17, 16, .88));
+  border-color: rgba(101,240,223,.13);
+}
+.tier-HIGH-PRIORITY { border-left-color: #d66a72; }
+.tier-IMPORTANT { border-left-color: var(--ops-amber); }
+.tier-POTENTIAL { border-left-color: #dfbd70; }
+.tier-WATCHLIST { border-left-color: var(--ops-teal-soft); }
+.paper-score,
+.score-num {
+  color: var(--ops-amber-soft);
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.digest-toolbar input,
+.digest-toolbar select {
+  background: rgba(8, 20, 19, .92);
+  border-color: rgba(101,240,223,.22);
+  color: var(--ops-ink);
+  border-radius: 8px;
+}
+#tab-trajectory {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  grid-template-areas:
+    "header header"
+    "map panel";
+  gap: 16px;
+}
+#tab-trajectory.hidden { display: none !important; }
+.trajectory-header {
+  grid-area: header;
+  align-items: center;
+  margin-bottom: 0;
+}
+.trajectory-switcher {
+  grid-area: map;
+  z-index: 2;
+  align-self: start;
+  justify-self: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: min(760px, calc(100% - 32px));
+  padding: 16px;
+  margin-bottom: 0;
+  pointer-events: none;
+}
+.trajectory-switch {
+  flex: 1 1 152px;
+  max-width: 186px;
+  min-height: 64px;
+  padding: 9px 11px;
+  color: var(--ops-body);
+  border-color: rgba(101,240,223,.16);
+  background: linear-gradient(180deg, rgba(15, 45, 44, .74), rgba(5, 16, 15, .9));
+  border-radius: 8px;
+  pointer-events: auto;
+}
+.trajectory-switch strong {
+  color: var(--ops-ink);
+}
+.trajectory-switch.active {
+  color: var(--ops-amber-soft);
+  border-color: rgba(216,182,111,.72);
+  background: linear-gradient(180deg, rgba(216,182,111,.18), rgba(13, 35, 33, .92));
+  box-shadow: 0 0 0 1px rgba(216,182,111,.18), 0 0 26px rgba(216,182,111,.12);
+}
+.trajectory-stage {
+  grid-area: map;
+  align-self: start;
+  min-height: 660px;
+  background:
+    linear-gradient(110deg, rgba(0,0,0,.28), transparent 38%),
+    linear-gradient(180deg, rgba(16,45,43,.72), rgba(4,11,10,.94));
+  border-color: rgba(101,240,223,.18);
+  overflow: hidden;
+}
+#trajectory-map {
+  min-height: 660px;
+}
+.trajectory-svg {
+  min-height: 660px;
+}
+.trajectory-link {
+  stroke-dasharray: 5 10;
+  animation: trajectoryFlow 12s linear infinite;
+}
+.trajectory-link-active {
+  stroke-dasharray: 9 8;
+  animation: trajectoryFlow 5s linear infinite;
+}
+.trajectory-selected-ring {
+  opacity: .7;
+  filter: drop-shadow(0 0 14px rgba(216,182,111,.38));
+}
+.trajectory-core-ring {
+  fill: none;
+  stroke: rgba(101,240,223,.16);
+  stroke-width: 1;
+}
+.trajectory-label-card,
+.trajectory-mini-card,
+.trajectory-list-card {
+  height: 100%;
+  padding: 10px 11px;
+  border: 1px solid rgba(101,240,223,.2);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(16,42,40,.88), rgba(6,15,15,.92));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 16px 34px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+.trajectory-mini-card.selected,
+.trajectory-list-card.selected {
+  border-color: rgba(216,182,111,.78);
+  box-shadow: 0 0 0 1px rgba(216,182,111,.18), 0 0 22px rgba(216,182,111,.16);
+}
+.trajectory-label-type {
+  color: var(--ops-teal);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.trajectory-label-title {
+  color: var(--ops-ink);
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+.trajectory-label-meta {
+  color: var(--ops-muted);
+  font-size: 10px;
+}
+.trajectory-panel {
+  grid-area: panel;
+  margin-top: 0;
+  align-self: start;
+  position: sticky;
+  top: 88px;
+}
+.trajectory-detail-card {
+  padding: 24px;
+  min-height: 650px;
+  background:
+    linear-gradient(145deg, rgba(30,82,76,.78), rgba(7,18,17,.96) 58%),
+    linear-gradient(180deg, rgba(216,182,111,.1), transparent 26%);
+  border-color: rgba(101,240,223,.18);
+}
+.detail-eyebrow {
+  color: var(--ops-amber);
+  font-size: 13px;
+  font-weight: 700;
+}
+.detail-title {
+  margin: 16px 0 18px;
+  color: var(--ops-ink);
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 650;
+}
+.detail-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(101,240,223,.16);
+  border-radius: 8px;
+  background: rgba(7,18,17,.55);
+}
+.trajectory-state-card {
+  margin: 16px 0;
+  padding: 18px 18px 44px;
+  min-height: 108px;
+  border-radius: 8px;
+  border: 1px solid rgba(216,182,111,.26);
+  background: linear-gradient(110deg, rgba(30,82,76,.48), rgba(5,12,12,.95) 58%);
+}
+.trajectory-state-card strong {
+  display: block;
+  margin-top: 7px;
+  color: var(--ops-ink);
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 500;
+}
+.trajectory-state-unit {
+  display: block;
+  margin: 4px 0 10px;
+  color: #9fb8b2;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.detail-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.detail-metric {
+  min-height: 92px;
+  padding: 14px;
+  border: 1px solid rgba(101,240,223,.12);
+  border-radius: 8px;
+  background: rgba(13,35,33,.56);
+}
+.detail-metric strong {
+  display: block;
+  color: var(--ops-ink);
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 26px;
+  font-weight: 500;
+}
+.detail-metric span,
+.analysis-box,
+.support-paper {
+  color: var(--ops-body);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.analysis-box {
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(101,240,223,.12);
+  background: rgba(6,16,15,.68);
+}
+.support-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.support-paper {
+  border: 1px solid rgba(101,240,223,.1);
+  background: rgba(255,255,255,.035);
+  border-radius: 8px;
+  padding: 10px;
+}
+.empty {
+  color: var(--ops-muted);
+  background: rgba(8, 20, 19, .72);
+  border-color: rgba(101,240,223,.16);
+}
+.modal {
+  background: rgba(0, 0, 0, .72);
+  backdrop-filter: blur(12px);
+}
+.modal-card {
+  background: linear-gradient(180deg, rgba(17,39,37,.98), rgba(5,13,12,.98));
+  border: 1px solid rgba(101,240,223,.18);
+  border-radius: 10px;
+  box-shadow: 0 26px 80px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.04) inset;
+}
+.modal-close {
+  color: var(--ops-body);
+}
+.score-cell,
+.toc-card,
+.workflow-card,
+.bullet-block {
+  background: rgba(8, 20, 19, .74);
+  border-color: rgba(101,240,223,.14);
+  border-radius: 8px;
+}
+.toc-card {
+  border-color: rgba(93,210,169,.22);
+}
+.toc-image {
+  background: rgba(0,0,0,.28);
+  border-color: rgba(101,240,223,.1);
+}
+.workflow-index {
+  background: var(--ops-teal-soft);
+  color: #021211;
+}
+.workflow-text,
+.bullet-list li {
+  color: var(--ops-body);
+}
+.bullet-title {
+  color: var(--ops-ink);
+}
+.bullet-block.weakness {
+  background: rgba(216,128,75,.14);
+  border-color: rgba(216,128,75,.28);
+}
+@media (max-width: 1100px) {
+  #tab-trajectory {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "switch"
+      "map"
+      "panel";
+  }
+  .trajectory-switcher {
+    grid-area: switch;
+    width: 100%;
+    padding: 0;
+    justify-self: stretch;
+  }
+  .trajectory-panel { position: static; }
+}
+@media (max-width: 760px) {
+  .nav-inner { padding: 12px 14px; }
+  .brand::after { display: none; }
+  .trajectory-switcher { grid-template-columns: 1fr; }
+  .trajectory-stage, #trajectory-map, .trajectory-svg { min-height: 560px; }
+  .detail-metrics { grid-template-columns: 1fr; }
+}
+
+/* Phase 8 refinement: polish without changing the layout contract */
+:root {
+  --ops-border-hairline: rgba(186, 229, 220, .13);
+  --ops-border-focus: rgba(216, 182, 111, .58);
+  --ops-deep-shadow: 0 24px 80px rgba(0, 0, 0, .34);
+  --ops-panel-shadow: inset 0 1px 0 rgba(255,255,255,.055), inset 0 -1px 0 rgba(0,0,0,.5), 0 18px 60px rgba(0,0,0,.22);
+}
+body {
+  background:
+    linear-gradient(180deg, rgba(216,182,111,.035), transparent 22%),
+    linear-gradient(110deg, #000 0%, #020403 12%, #061412 47%, #020403 100%);
+}
+body::before {
+  background:
+    linear-gradient(115deg, transparent 0 28%, rgba(101, 240, 223, .08) 44%, rgba(216,182,111,.045) 58%, transparent 76%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.026) 0 1px, transparent 1px 78px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.017) 0 1px, transparent 1px 78px);
+  opacity: .54;
+  mix-blend-mode: normal;
+}
+.nav-shell,
+.modal,
+.trajectory-switch,
+.trajectory-label-card,
+.trajectory-mini-card,
+.trajectory-list-card {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.nav-shell {
+  border-bottom-color: rgba(216,182,111,.18);
+}
+.nav-shell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(101,240,223,.36), rgba(216,182,111,.36), transparent);
+}
+.brand-icon {
+  position: relative;
+  color: var(--ops-amber-soft);
+  text-shadow: 0 0 18px rgba(216,182,111,.36);
+}
+.brand-icon::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(101,240,223,.14);
+  border-radius: 5px;
+  pointer-events: none;
+}
+.brand-text {
+  text-shadow: 0 0 22px rgba(216,182,111,.18);
+}
+.nav-btn {
+  position: relative;
+  overflow: hidden;
+}
+.nav-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,.12), transparent 42%);
+  opacity: .15;
+  pointer-events: none;
+}
+.nav-btn.active {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(216,182,111,.2), 0 12px 32px rgba(216,182,111,.1);
+}
+main {
+  isolation: isolate;
+}
+.card {
+  position: relative;
+  border-color: var(--ops-border-hairline);
+  box-shadow: var(--ops-panel-shadow);
+}
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), transparent 34%),
+    linear-gradient(90deg, rgba(101,240,223,.06), transparent 28%, transparent 72%, rgba(216,182,111,.045));
+  opacity: .65;
+}
+.card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(101,240,223,.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 22px 70px rgba(0,0,0,.3), 0 0 28px rgba(101,240,223,.07);
+}
+.stat-card {
+  overflow: hidden;
+}
+.stat-card::before {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(216,182,111,.86), rgba(101,240,223,.55), transparent);
+  opacity: .8;
+}
+.stat-label {
+  letter-spacing: 0 !important;
+}
+.stat-note {
+  line-height: 1.42;
+}
+.process-card {
+  overflow: hidden;
+  border-color: rgba(101,240,223,.22);
+}
+.process-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 18px;
+  bottom: 18px;
+  width: 3px;
+  background: linear-gradient(180deg, var(--ops-amber), var(--ops-teal));
+  border-radius: 0 999px 999px 0;
+}
+.process-title {
+  font-size: 16px;
+}
+.process-meta {
+  max-width: 96ch;
+}
+.paper-card,
+.concept-card,
+.tier-menu-item {
+  overflow: hidden;
+}
+.tier-menu-item {
+  cursor: pointer;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, background .18s ease;
+}
+.tier-menu-item:hover,
+.tier-menu-item:active,
+.tier-menu-item:focus,
+.tier-menu-item:focus-visible {
+  color: var(--ops-ink);
+  outline: none;
+  border-color: rgba(216,182,111,.46);
+  background:
+    linear-gradient(180deg, rgba(28, 68, 63, .9), rgba(8, 20, 19, .94));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px rgba(216,182,111,.08), 0 12px 28px rgba(0,0,0,.24);
+}
+.tier-menu-item:active {
+  transform: translateY(1px);
+}
+.paper-card::before,
+.concept-card::before,
+.tier-menu-item::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  border-top: 1px solid rgba(216,182,111,.36);
+  border-right: 1px solid rgba(216,182,111,.36);
+  opacity: .55;
+}
+.paper-title,
+.concept-name {
+  text-wrap: balance;
+}
+.paper-title {
+  font-size: 15px;
+}
+.digest-toolbar {
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid rgba(101,240,223,.13);
+  border-radius: 8px;
+  background: rgba(7,18,17,.52);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+.digest-toolbar input:focus,
+.digest-toolbar select:focus,
+.nav-btn:focus-visible,
+.trajectory-switch:focus-visible {
+  outline: 1px solid rgba(216,182,111,.72);
+  outline-offset: 2px;
+}
+.trajectory-header {
+  padding: 4px 0 2px;
+}
+.trajectory-stage {
+  position: relative;
+  box-shadow: var(--ops-deep-shadow), inset 0 1px 0 rgba(255,255,255,.045);
+}
+.trajectory-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.42), transparent 18%, transparent 78%, rgba(0,0,0,.36)),
+    repeating-linear-gradient(0deg, rgba(101,240,223,.03) 0 1px, transparent 1px 48px);
+  opacity: .72;
+}
+#trajectory-map {
+  position: relative;
+  z-index: 1;
+}
+.trajectory-switcher {
+  gap: 9px;
+}
+.trajectory-switch {
+  backdrop-filter: blur(10px);
+}
+.trajectory-switch strong {
+  font-size: 12px;
+  line-height: 1.18;
+}
+.trajectory-label-card,
+.trajectory-mini-card,
+.trajectory-list-card {
+  backdrop-filter: blur(8px);
+}
+.trajectory-label-type {
+  color: #8af4e9;
+}
+.trajectory-label-title {
+  font-size: 13px;
+  line-height: 1.22;
+}
+.trajectory-label-meta {
+  color: #8da39e;
+}
+.trajectory-detail-card {
+  box-shadow: var(--ops-deep-shadow), inset 0 1px 0 rgba(255,255,255,.055);
+}
+.detail-title {
+  text-wrap: balance;
+}
+.detail-status,
+.detail-metric,
+.analysis-box,
+.support-paper {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+.detail-status .nav-btn {
+  flex: 0 0 auto;
+  min-width: 132px;
+  padding-left: 12px;
+  padding-right: 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+.trajectory-state-card {
+  position: relative;
+  overflow: hidden;
+}
+.trajectory-state-card::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  height: 18px;
+  background:
+    linear-gradient(90deg, rgba(216,182,111,.15), transparent),
+    repeating-linear-gradient(90deg, rgba(216,182,111,.52) 0 2px, transparent 2px 7px);
+  opacity: .42;
+  pointer-events: none;
+}
+.modal-card {
+  max-width: 880px;
+}
+.score-cell {
+  border: 1px solid rgba(101,240,223,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+.workflow-card {
+  position: relative;
+}
+.workflow-steps {
+  position: relative;
+}
+.workflow-steps::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(101,240,223,.7), rgba(216,182,111,.46));
+}
+.workflow-step {
+  position: relative;
+}
+.workflow-index {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 18px rgba(101,240,223,.18);
+}
+.bullet-list li {
+  align-items: flex-start;
+}
+.bullet-dot {
+  box-shadow: 0 0 12px rgba(148,163,184,.28);
+}
+.weakness .bullet-dot {
+  box-shadow: 0 0 14px rgba(234,88,12,.28);
+}
+@media (max-width: 980px) {
+  .process-meta { max-width: none; }
+}
+@media (max-width: 760px) {
+  .digest-toolbar { align-items: stretch; width: 100%; }
+  .digest-toolbar select { width: 100%; }
+  .trajectory-switch { max-width: none; }
+}
+</style>
+</head>
+<body>
+<nav class="nav-shell">
+  <div class="nav-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🐕</span>
+      <span class="brand-text">ScholarHound</span>
+    </div>
+    <div class="nav-links">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active">Dashboard</button>
+      <button onclick="switchTab('digest')" id="nav-digest" class="nav-btn">Digest</button>
+      <button onclick="switchTab('trajectory')" id="nav-trajectory" class="nav-btn">Trajectory Map</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <section id="tab-dashboard">
+    <div class="grid stats-grid" id="stats-row"></div>
+    <div id="tier-menu" class="tier-menu hidden"></div>
+    <div id="process-row" class="process-row"></div>
+    <section>
+      <h2 class="section-title">Latest Highlights</h2>
+      <div id="latest-papers"></div>
+    </section>
+    <section style="margin-top:32px">
+      <h2 class="section-title">Emerging Concepts</h2>
+      <div id="gaining-concepts" class="grid concept-grid"></div>
+    </section>
+  </section>
+
+  <section id="tab-digest" class="hidden">
+    <div class="digest-toolbar">
+      <h2 class="section-title" style="margin:0">Digest Browser</h2>
+      <select id="digest-picker" onchange="loadDigestDate(this.value)" aria-label="Digest date"></select>
+      <span id="digest-info" class="muted"></span>
+    </div>
+    <div id="digest-content"></div>
+  </section>
+
+  <section id="tab-trajectory" class="hidden">
+    <div class="trajectory-header">
+      <div>
+        <h2 class="section-title" style="margin:0">Trajectory Map</h2>
+        <p id="trajectory-info" class="muted" style="margin:6px 0 0"></p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge badge-red">Rising</span>
+        <span class="badge badge-amber">Active</span>
+        <span class="badge badge-blue">Watching</span>
+      </div>
+    </div>
+    <div id="trajectory-switcher" class="trajectory-switcher"></div>
+    <div class="card trajectory-stage">
+      <div id="trajectory-map"></div>
+    </div>
+    <div id="trajectory-panel" class="trajectory-panel"></div>
+  </section>
+</main>
+
+<div id="report-modal" class="modal" onclick="closeReport()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button onclick="closeReport()" class="modal-close" aria-label="Close">&times;</button>
+    <h2 id="modal-title" class="section-title" style="padding-right:30px"></h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+var API = "";
+var dashboardData = null;
+var stateData = null;
+var activeTierMenu = "";
+var trajectoryMapData = null;
+var trajectoryMapPromise = null;
+var trajectoryPrefetchStarted = false;
+var selectedStoryId = "";
+var selectedTrajectoryId = "";
+
+function api(path) {
+  return fetch(API + path).then(function(response) {
+    if (!response.ok) throw new Error(path + " " + response.status);
+    return response.json();
+  });
+}
+function esc(value) {
+  return String(value == null ? "" : value).replace(/[&<>"']/g, function(ch) {
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch];
+  });
+}
+function jsq(value) {
+  return String(value || "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/\n/g, " ");
+}
+function compactDate(value) {
+  return String(value || "").replace("T", " ").replace("+00:00", " UTC");
+}
+function tierDisplay(tier) {
+  return String(tier || "").replace(/_/g, " ");
+}
+function tierBadge(tier) {
+  var tone = tier === "HIGH_PRIORITY" ? "badge-red" : tier === "IMPORTANT" ? "badge-amber" : tier === "POTENTIAL" ? "badge-amber" : "badge-blue";
+  return '<span class="badge ' + tone + '">' + esc(tierDisplay(tier)) + '</span>';
+}
+function scoreText(paper) {
+  var finalScore = paper && paper.scores ? paper.scores.final : "";
+  return finalScore || finalScore === 0 ? finalScore : "";
+}
+
+function switchTab(tab) {
+  document.querySelectorAll("[id^='tab-']").forEach(function(el) { el.classList.add("hidden"); });
+  document.getElementById("tab-" + tab).classList.remove("hidden");
+  document.querySelectorAll(".nav-btn").forEach(function(btn) { btn.classList.remove("active"); });
+  var active = document.getElementById("nav-" + tab);
+  if (active) active.classList.add("active");
+  if (tab === "dashboard") loadDashboard();
+  if (tab === "digest") loadDigests();
+  if (tab === "trajectory") {
+    if (trajectoryMapData) {
+      renderTrajectoryMapData(trajectoryMapData);
+    } else {
+      renderTrajectoryLoading();
+      loadTrajectoryMap();
+    }
+  }
+}
+function closeReport() {
+  document.getElementById("report-modal").classList.remove("open");
+}
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape") closeReport();
+});
+
+async function loadDashboard() {
+  var results = await Promise.allSettled([api("/api/dashboard"), api("/api/state-changes")]);
+  dashboardData = results[0].status === "fulfilled" ? results[0].value : {};
+  stateData = results[1].status === "fulfilled" ? results[1].value : {ok:false,event_count:0,events:[],action_queue:[],issues:["state unavailable"]};
+  renderDashboard();
+  scheduleTrajectoryPrefetch();
+}
+function renderDashboard() {
+  var d = dashboardData || {};
+  document.getElementById("stats-row").innerHTML =
+    statCard(d.total_papers || 0, "Papers", "Indexed candidates") +
+    '<button class="card stat-card" style="text-align:left" onclick="toggleTierMenu(\'HIGH_PRIORITY\')">' + statInner(d.high_priority || 0, "High Priority", "Open priority list", "color:var(--red-600)") + '</button>' +
+    '<button class="card stat-card" style="text-align:left" onclick="toggleTierMenu(\'IMPORTANT\')">' + statInner(d.important || 0, "Important", "Open important list", "color:var(--orange-600)") + '</button>' +
+    statCard(d.concepts_tracked || 0, "Concepts", (d.concepts_gaining || 0) + " gaining") +
+    statCard(d.digest_count || 0, "Digests", "Paper intake views");
+  renderTierMenu();
+  renderProcessRow();
+  renderLatestPapers();
+  renderConcepts();
+}
+function statInner(value, label, note, style) {
+  return '<p class="stat-value" style="' + (style || "") + '">' + esc(value) + '</p><p class="stat-label">' + esc(label) + '</p><p class="stat-note">' + esc(note || "") + '</p>';
+}
+function statCard(value, label, note) {
+  return '<div class="card stat-card">' + statInner(value, label, note) + '</div>';
+}
+function renderProcessRow() {
+  var s = stateData || {};
+  var latest = s.latest_event || (s.events || [])[0] || {};
+  var boundary = s.parser_boundary || {};
+  var action = (s.action_queue || [])[0] || {};
+  var statusClass = s.ok ? "badge-green" : "badge-red";
+  var statusText = s.ok ? "ledger valid" : "ledger issue";
+  document.getElementById("process-row").innerHTML =
+    '<div class="card process-card">' +
+      '<div><p class="process-title">Process State</p>' +
+      '<div class="process-meta">' + esc(latest.evidence_item || "No validated state changes yet.") + '</div>' +
+      '<div class="process-meta">Source: <code>' + esc(boundary.source_of_truth || "kernel/state_changes.jsonl") + '</code> · Parser: ' + esc(boundary.parser_layer || "LLM candidate JSON") + ' · Acceptance: ' + esc(boundary.acceptance_layer || "validator") + '</div>' +
+      (action.next_action ? '<div class="process-meta">Next action: ' + esc(action.next_action) + '</div>' : '') +
+      '</div>' +
+      '<div class="process-badges"><span class="badge ' + statusClass + '">' + esc(statusText) + '</span><span class="badge badge-blue">' + esc(s.event_count || 0) + ' state events</span></div>' +
+    '</div>';
+}
+function toggleTierMenu(tier) {
+  activeTierMenu = activeTierMenu === tier ? "" : tier;
+  renderTierMenu();
+}
+function renderTierMenu() {
+  var box = document.getElementById("tier-menu");
+  if (!box || !dashboardData || !activeTierMenu) {
+    box.classList.add("hidden");
+    box.innerHTML = "";
+    return;
+  }
+  var papers = ((dashboardData.tier_lists || {})[activeTierMenu] || []);
+  box.classList.remove("hidden");
+  box.innerHTML =
+    '<div class="card" style="padding:18px">' +
+    '<div class="tier-menu-header"><h3 class="section-title" style="margin:0">' + esc(tierDisplay(activeTierMenu)) + '</h3><button class="nav-btn" onclick="toggleTierMenu(\'' + jsq(activeTierMenu) + '\')">Close</button></div>' +
+    (papers.length ? '<div class="tier-menu-list">' + papers.map(function(paper) {
+      return '<div class="tier-menu-item" onclick="openDbPaper(\'' + jsq(paper.doi) + '\')"><div class="paper-top"><div><div class="paper-title" style="margin:0">' + esc(paper.title) + '</div><div class="paper-meta">' + esc(paper.journal || "") + (paper.concept_name ? " · " + esc(paper.concept_name) : "") + '</div></div>' + (scoreText(paper) ? '<div class="paper-score">' + esc(scoreText(paper)) + '</div>' : '') + '</div></div>';
+    }).join("") + '</div>' : '<div class="empty">None in database.</div>') +
+    '</div>';
+}
+async function renderLatestPapers() {
+  var d = dashboardData || {};
+  var date = d.latest_ranked_digest || d.latest_digest;
+  var box = document.getElementById("latest-papers");
+  if (!date) {
+    box.innerHTML = '<div class="empty">No ranked digest yet.</div>';
+    return;
+  }
+  try {
+    var digest = await api("/api/digest/" + encodeURIComponent(date));
+    var papers = (digest.papers || []).filter(function(paper) {
+      return paper.tier === "HIGH_PRIORITY" || paper.tier === "IMPORTANT";
+    }).slice(0, 6);
+    window.latestHighlightCache = papers;
+    box.innerHTML = papers.length ? papers.map(function(paper, index) {
+      return '<div class="card paper-card tier-' + esc(String(paper.tier || "").replace("_", "-")) + '" onclick="renderPaperModal(latestHighlightCache[' + index + '])"><div class="paper-top"><div>' + tierBadge(paper.tier) + '<p class="paper-title">' + esc(paper.title) + '</p><p class="paper-meta">' + esc(paper.journal || "") + '</p></div>' + (scoreText(paper) ? '<div><span class="paper-score">' + esc(scoreText(paper)) + '</span><span class="muted"> /10</span></div>' : '') + '</div></div>';
+    }).join("") : '<div class="empty">No high or important papers in latest ranked digest.</div>';
+  } catch (error) {
+    box.innerHTML = '<div class="empty">Digest unavailable.</div>';
+  }
+}
+function renderConcepts() {
+  var concepts = (dashboardData || {}).gaining_concepts || [];
+  document.getElementById("gaining-concepts").innerHTML = concepts.length ? concepts.map(function(concept) {
+    return '<div class="card concept-card"><div class="concept-name">' + esc(concept.name) + '</div><div class="concept-meta">' + esc(concept.appearances) + ' appearances · ' + esc(concept.weight || "medium") + ' weight</div></div>';
+  }).join("") : '<div class="empty" style="grid-column:1/-1">No concepts gaining momentum yet.</div>';
+}
+
+async function loadDigests() {
+  var data = await api("/api/digests");
+  var dates = data.digests || [];
+  var picker = document.getElementById("digest-picker");
+  picker.innerHTML = dates.map(function(date) {
+    return '<option value="' + esc(date) + '">' + esc(date) + '</option>';
+  }).join("");
+  var selected = data.selected_digest || dates[0] || "";
+  if (!selected) {
+    document.getElementById("digest-content").innerHTML = '<div class="empty">No digests available.</div>';
+    return;
+  }
+  picker.value = selected;
+  loadDigestDate(selected);
+}
+async function loadDigestDate(date) {
+  if (!date) return;
+  var data = await api("/api/digest/" + encodeURIComponent(date));
+  document.getElementById("digest-info").textContent = "Showing " + date;
+  renderDigest(data);
+}
+function renderDigest(data) {
+  var papers = data.papers || [];
+  document.getElementById("digest-content").innerHTML = papers.length ? papers.map(function(paper, index) {
+    return '<div class="card paper-card tier-' + esc(String(paper.tier || "").replace("_", "-")) + '" onclick="renderPaperModal(paperCache[' + index + '])"><div class="paper-top"><div>' + tierBadge(paper.tier) + '<p class="paper-title">' + esc(paper.title) + '</p><p class="paper-meta">' + esc(paper.journal || "") + (paper.doi ? " · DOI " + esc(paper.doi) : "") + '</p><p class="process-meta">' + esc(paper.why || paper.action || "") + '</p></div>' + (scoreText(paper) ? '<div><span class="paper-score">' + esc(scoreText(paper)) + '</span><span class="muted"> /10</span></div>' : '') + '</div></div>';
+  }).join("") : '<div class="empty">No papers for this date.</div>';
+  window.paperCache = papers;
+}
+
+async function openDbPaper(doi) {
+  if (!doi) return;
+  try {
+    var paper = await api("/api/paper?doi=" + encodeURIComponent(doi));
+    renderPaperModal(paper);
+  } catch (error) {}
+}
+function renderPaperModal(paper) {
+  if (!paper) return;
+  var scores = paper.scores || {};
+  document.getElementById("modal-title").textContent = paper.title || "Paper";
+  document.getElementById("modal-body").innerHTML =
+    '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">' +
+      tierBadge(paper.tier || "") +
+      '<span class="muted">' + esc(paper.journal || "") + '</span>' +
+      (paper.pub_date ? '<span class="muted">' + esc(paper.pub_date) + '</span>' : '') +
+      (paper.doi ? '<a href="https://doi.org/' + esc(paper.doi) + '" target="_blank" style="color:var(--amber-700)">DOI: ' + esc(paper.doi) + '</a>' : '') +
+    '</div>' +
+    '<div class="score-grid">' + ["relevance","novelty","bridge","trajectory","concept_support"].map(function(key) {
+      return '<div class="score-cell"><div class="score-num">' + esc(scores[key] || "?") + '</div><div class="score-label">' + esc(key.replace(/_/g, " ")) + '</div></div>';
+    }).join("") + '</div>' +
+    '<div style="text-align:center;margin-bottom:22px"><span class="paper-score" style="color:var(--amber-600)">' + esc(scores.final || "?") + '</span><span class="muted"> /10</span></div>' +
+    buildTocGraphHTML(paper) +
+    buildWorkflowHTML(paper) +
+    buildBulletBlockHTML("Why It Matters", paper.why, "slate") +
+    buildBulletBlockHTML("Connection", paper.connection, "slate") +
+    buildBulletBlockHTML("Weakness", paper.weakness, "weakness") +
+    (paper.action ? '<span class="badge badge-amber">' + esc(paper.action) + '</span>' : "");
+  document.getElementById("report-modal").classList.add("open");
+}
+function buildTocGraphHTML(paper) {
+  var graph = paper.toc_graph || {};
+  var image = String(graph.image_url || paper.toc_image || "").trim();
+  if (image) {
+    return '<div class="toc-card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px"><h4 class="bullet-title" style="margin:0;color:var(--green-700)">TOC Graph</h4>' + (graph.source ? '<span class="badge badge-green">' + esc(graph.source) + '</span>' : '') + '</div><img src="' + esc(image) + '" class="toc-image" alt="TOC graph" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><div hidden class="empty">TOC graph image failed to load.</div></div>';
+  }
+  return '<div class="toc-card"><h4 class="bullet-title" style="color:var(--green-700)">TOC Graph</h4><div class="muted">No TOC graph captured for this paper yet.</div></div>';
+}
+function buildWorkflowHTML(paper) {
+  var workflow = paper.workflow || {};
+  var steps = [
+    { label: "Question", text: workflow.question },
+    { label: "Hypothesis", text: workflow.hypothesis },
+    { label: "Design", text: workflow.design },
+    { label: "Key Method", text: workflow.key_method },
+    { label: "Key Result", text: workflow.key_result },
+    { label: "Gap", text: workflow.gap }
+  ].filter(function(step) {
+    return step.text && String(step.text).trim() && String(step.text).trim().toLowerCase() !== "none";
+  });
+  if (!steps.length) return "";
+  return '<div class="workflow-card"><h4 class="bullet-title" style="color:var(--blue-600)">Paper Workflow</h4><div class="workflow-steps">' + steps.map(function(step, index) {
+    return '<div class="workflow-step"><div class="workflow-index">' + (index + 1) + '</div><div><div class="workflow-label">' + esc(step.label) + '</div><div class="workflow-text">' + esc(step.text) + '</div></div></div>';
+  }).join("") + '</div></div>';
+}
+function splitBulletText(text) {
+  return String(text || "").split(/\n+/).map(function(item) {
+    return item.replace(/^\s*[-*•]\s+/, "").trim();
+  }).filter(function(item) {
+    return item && item.toLowerCase() !== "none";
+  });
+}
+function buildBulletBlockHTML(title, text, tone) {
+  var items = splitBulletText(text);
+  if (!items.length) return "";
+  var cls = tone === "weakness" ? "bullet-block weakness" : "bullet-block";
+  return '<div class="' + cls + '"><h4 class="bullet-title">' + esc(title) + '</h4><ul class="bullet-list">' + items.map(function(item) {
+    return '<li><span class="bullet-dot"></span><span>' + esc(item) + '</span></li>';
+  }).join("") + '</ul></div>';
+}
+
+function renderTrajectoryLoading() {
+  var map = document.getElementById("trajectory-map");
+  var switcher = document.getElementById("trajectory-switcher");
+  var panel = document.getElementById("trajectory-panel");
+  if (switcher) {
+    switcher.innerHTML =
+      '<div class="trajectory-switch active" aria-hidden="true"><strong>Preparing map</strong><br><span>loading evidence</span></div>' +
+      '<div class="trajectory-switch" aria-hidden="true"><strong>Trajectory data</strong><br><span>syncing</span></div>';
+  }
+  if (map) {
+    map.innerHTML =
+      '<div class="trajectory-loading" aria-live="polite">' +
+        '<div class="trajectory-loading-inner">' +
+          '<div class="trajectory-loading-line"></div>' +
+          '<div class="trajectory-loading-line short"></div>' +
+          '<div class="trajectory-loading-nodes">' +
+            '<div class="trajectory-loading-node"></div>' +
+            '<div class="trajectory-loading-node"></div>' +
+            '<div class="trajectory-loading-node"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+  if (panel) panel.innerHTML = "";
+}
+function prefetchTrajectoryMap() {
+  if (trajectoryMapData) return Promise.resolve(trajectoryMapData);
+  if (!trajectoryMapPromise) {
+    trajectoryMapPromise = api("/api/trajectory-map").then(function(data) {
+      trajectoryMapData = data;
+      return data;
+    }).catch(function(error) {
+      trajectoryMapPromise = null;
+      throw error;
+    });
+  }
+  return trajectoryMapPromise;
+}
+function scheduleTrajectoryPrefetch(immediate) {
+  if (trajectoryPrefetchStarted || trajectoryMapData) return;
+  trajectoryPrefetchStarted = true;
+  var run = function() {
+    prefetchTrajectoryMap().catch(function() {
+      trajectoryPrefetchStarted = false;
+    });
+  };
+  if (immediate) {
+    run();
+    return;
+  }
+  if (window.requestIdleCallback) {
+    window.requestIdleCallback(run, { timeout: 1200 });
+  } else {
+    window.setTimeout(run, 120);
+  }
+}
+async function loadTrajectoryMap() {
+  try {
+    var data = await prefetchTrajectoryMap();
+    if (document.getElementById("tab-trajectory").classList.contains("hidden")) return;
+    renderTrajectoryMapData(data);
+  } catch (error) {
+    document.getElementById("trajectory-map").innerHTML = '<div class="empty" style="margin:20px">Trajectory map unavailable.</div>';
+    document.getElementById("trajectory-info").textContent = "Unable to load";
+  }
+}
+function renderTrajectoryMapData(data) {
+  trajectoryMapData = data;
+  var groups = trajectoryMapData.story_groups || [];
+  if (groups.length && !groups.find(function(group) { return group.id === selectedStoryId; })) selectedStoryId = trajectoryMapData.story_direction_id || groups[0].id;
+  renderTrajectorySwitcher();
+  renderTrajectoryGraph();
+  renderTrajectoryPanel();
+}
+function activeTrajectoryGroup() {
+  var groups = (trajectoryMapData || {}).story_groups || [];
+  if (!groups.length) return null;
+  return groups.find(function(group) { return group.id === selectedStoryId; }) || groups[0];
+}
+function renderTrajectorySwitcher() {
+  var groups = (trajectoryMapData || {}).story_groups || [];
+  document.getElementById("trajectory-info").textContent = (groups.length || 0) + " directions";
+  document.getElementById("trajectory-switcher").innerHTML = groups.map(function(group) {
+    var active = group.id === selectedStoryId ? " active" : "";
+    return '<button class="trajectory-switch' + active + '" onclick="selectTrajectoryStory(\'' + jsq(group.id) + '\')"><strong>' + esc(group.direction) + '</strong><br><span>' + esc(group.evidence_count || 0) + ' evidence</span></button>';
+  }).join("");
+}
+function selectTrajectoryStory(id) {
+  selectedStoryId = id;
+  selectedTrajectoryId = "";
+  renderTrajectorySwitcher();
+  renderTrajectoryGraph();
+  renderTrajectoryPanel();
+}
+function selectTrajectoryNode(id) {
+  selectedTrajectoryId = id;
+  renderTrajectoryGraph();
+  renderTrajectoryPanel();
+}
+function renderTrajectoryGraph() {
+  var container = document.getElementById("trajectory-map");
+  var group = activeTrajectoryGroup();
+  var nodes = group ? (group.nodes || []) : ((trajectoryMapData || {}).story_nodes || []);
+  if (!nodes.length) {
+    container.innerHTML = '<div class="empty" style="margin:20px">No trajectory evidence yet.</div>';
+    return;
+  }
+  renderEvolutionMap(container, nodes);
+}
+function renderEvolutionMap(container, nodes) {
+  var containerWidth = container && container.getBoundingClientRect ? container.getBoundingClientRect().width : 0;
+  if (containerWidth && containerWidth < 560) {
+    renderCompactEvolutionMap(container, nodes);
+    return;
+  }
+  var width = 1040;
+  var height = 660;
+  var hub = {x: 132, y: 350};
+  var summaryX = 286;
+  var summaryW = 170;
+  var spineX = 518;
+  var listX = 638;
+  var rowGap = Math.min(84, Math.max(70, 450 / Math.max(1, nodes.length - 1)));
+  var startY = Math.max(78, hub.y - rowGap * (nodes.length - 1) / 2);
+  var activeId = selectedTrajectoryId || (nodes[0] || {}).id || "";
+  var group = activeTrajectoryGroup() || {};
+  var activeIndex = Math.max(0, nodes.findIndex(function(node) { return node.id === activeId; }));
+  var coverageEvidence = Number(group.evidence_count || (nodes[0] || {}).evidence_count || 0);
+  var points = nodes.map(function(node, index) {
+    return {
+      node: node,
+      x: listX,
+      y: startY + index * rowGap,
+      midY: startY + index * rowGap + 34,
+      step: String(index + 1).padStart(2, "0") + "/" + String(nodes.length).padStart(2, "0")
+    };
+  });
+  function curve(from, to, bend) {
+    var mid = from.x + (to.x - from.x) * (bend || .48);
+    return 'M ' + from.x + ' ' + from.y + ' C ' + mid + ' ' + from.y + ', ' + (to.x - 120) + ' ' + to.y + ', ' + to.x + ' ' + to.y;
+  }
+  function rowCurve(point) {
+    return 'M ' + (summaryX + summaryW) + ' ' + point.midY +
+      ' C ' + (summaryX + summaryW + 32) + ' ' + point.midY + ', ' + (spineX - 34) + ' ' + point.midY + ', ' + spineX + ' ' + point.midY +
+      ' C ' + (spineX + 42) + ' ' + point.midY + ', ' + (point.x - 58) + ' ' + point.midY + ', ' + (point.x - 24) + ' ' + point.midY;
+  }
+  var definitions =
+    '<defs>' +
+      '<radialGradient id="coreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#b8a5ff"></stop><stop offset="54%" stop-color="#765fe0"></stop><stop offset="100%" stop-color="#152321"></stop></radialGradient>' +
+      '<linearGradient id="activeStroke" x1="0" x2="1"><stop offset="0%" stop-color="#d8b66f"></stop><stop offset="54%" stop-color="#65f0df"></stop><stop offset="100%" stop-color="#d8b66f"></stop></linearGradient>' +
+      '<filter id="softGlow"><feGaussianBlur stdDeviation="4" result="blur"></feGaussianBlur><feMerge><feMergeNode in="blur"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge></filter>' +
+    '</defs>';
+  var guideRings = [72, 108, 146].map(function(radius) {
+    return '<circle class="trajectory-core-ring" cx="' + hub.x + '" cy="' + hub.y + '" r="' + radius + '"></circle>';
+  }).join("");
+  var hubTitle = labelLines(group.direction || "Research Trajectory", 18, 2);
+  var hubLabel = hubTitle.map(function(line, index) {
+    return '<text x="' + hub.x + '" y="' + (hub.y - 88 + index * 16) + '" text-anchor="middle" fill="#f2f7f5" font-size="13" font-weight="700">' + esc(line) + '</text>';
+  }).join("");
+  var hubNode =
+    '<g>' +
+      guideRings +
+      hubLabel +
+      '<circle cx="' + hub.x + '" cy="' + hub.y + '" r="44" fill="rgba(101,240,223,.04)" stroke="rgba(101,240,223,.18)"></circle>' +
+      '<circle cx="' + hub.x + '" cy="' + hub.y + '" r="30" fill="url(#coreGlow)" filter="url(#softGlow)"></circle>' +
+      '<circle cx="' + hub.x + '" cy="' + hub.y + '" r="18" fill="rgba(255,255,255,.18)"></circle>' +
+      '<text x="' + hub.x + '" y="' + (hub.y + 82) + '" text-anchor="middle" fill="#748985" font-size="11">' + esc(coverageEvidence || nodes.length) + ' evidence</text>' +
+    '</g>';
+  var firstPoint = points[0];
+  var activePoint = points[activeIndex] || firstPoint;
+  var contextLink = firstPoint
+    ? '<path class="trajectory-link trajectory-context-link" d="' + curve({x: hub.x + 38, y: hub.y}, {x: summaryX - 18, y: firstPoint.midY}, .4) + '" stroke="rgba(101,240,223,.22)" stroke-width="1.2" stroke-linecap="round" fill="none"></path>'
+    : "";
+  var spineBase = points.length > 1
+    ? '<path class="trajectory-link trajectory-transition-spine" d="M ' + spineX + ' ' + points[0].midY + ' L ' + spineX + ' ' + points[points.length - 1].midY + '" stroke="rgba(117,163,154,.34)" stroke-width="1.4" stroke-linecap="round" fill="none"></path>'
+    : "";
+  var activeSpine = firstPoint && activePoint && activeIndex > 0
+    ? '<path class="trajectory-link-active trajectory-active-spine" d="M ' + spineX + ' ' + firstPoint.midY + ' L ' + spineX + ' ' + activePoint.midY + '" stroke="url(#activeStroke)" stroke-width="2.2" stroke-linecap="round" fill="none"></path>'
+    : "";
+  var rowLinks = points.map(function(point) {
+    var selected = activeId === point.node.id;
+    return '<path class="trajectory-link trajectory-row-link' + (selected ? " trajectory-link-active" : "") + '" d="' + rowCurve(point) + '" stroke="' + (selected ? "url(#activeStroke)" : "rgba(117,163,154,.28)") + '" stroke-width="' + (selected ? "2.2" : "1.1") + '" stroke-linecap="round" fill="none"></path>';
+  }).join("");
+  var summaryCards = points.map(function(point, index) {
+    var selected = activeId === point.node.id;
+    var color = storyColor(point.node.node_type || point.node.status || "");
+    var title = labelLines(point.node.type_label || point.node.node_type || "State", 19, 1).join(" ");
+    return '<g class="trajectory-node" onclick="selectTrajectoryNode(\'' + jsq(point.node.id) + '\')" style="cursor:pointer">' +
+      '<foreignObject x="' + summaryX + '" y="' + point.y + '" width="' + summaryW + '" height="68">' +
+        '<div xmlns="http://www.w3.org/1999/xhtml" class="trajectory-mini-card trajectory-label-card' + (selected ? " selected" : "") + '">' +
+          '<div class="trajectory-label-type">' + esc(title) + '</div>' +
+          '<div style="display:flex;align-items:baseline;gap:8px;margin-top:5px"><strong style="color:' + color + ';font-size:24px;font-family:SFMono-Regular,Menlo,monospace">' + esc(String(index + 1).padStart(2, "0")) + '</strong></div>' +
+        '</div>' +
+      '</foreignObject>' +
+    '</g>';
+  }).join("");
+  var listCards = points.map(function(point, index) {
+    var selected = activeId === point.node.id;
+    var color = storyColor(point.node.node_type || point.node.status || "");
+    var title = labelLines(point.node.title || point.node.type_label || "Node", 34, 2).join(" ");
+    return '<g class="trajectory-node" onclick="selectTrajectoryNode(\'' + jsq(point.node.id) + '\')" style="cursor:pointer">' +
+      (selected ? '<circle class="trajectory-selected-ring" cx="' + spineX + '" cy="' + point.midY + '" r="24" stroke="' + color + '"></circle>' : '') +
+      '<circle cx="' + spineX + '" cy="' + point.midY + '" r="5" fill="' + color + '" stroke="#d8b66f" stroke-width="1"></circle>' +
+      '<foreignObject x="' + point.x + '" y="' + point.y + '" width="330" height="74">' +
+        '<div xmlns="http://www.w3.org/1999/xhtml" class="trajectory-list-card' + (selected ? " selected" : "") + '">' +
+          '<div class="trajectory-label-type">' + esc(point.node.type_label || point.node.node_type || "Node") + '</div>' +
+          '<div class="trajectory-label-title">' + esc(title) + '</div>' +
+        '</div>' +
+      '</foreignObject>' +
+    '</g>';
+  }).join("");
+  container.innerHTML =
+    '<svg class="trajectory-svg" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="Trajectory map">' +
+      definitions +
+      '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="rgba(3,7,6,.2)"></rect>' +
+      '<text x="34" y="42" fill="#8aa09b" font-size="12" letter-spacing="0">Trajectory intelligence</text>' +
+      hubNode +
+      contextLink +
+      rowLinks +
+      spineBase +
+      activeSpine +
+      summaryCards +
+      listCards +
+    '</svg>';
+}
+function renderCompactEvolutionMap(container, nodes) {
+  var width = 360;
+  var rowGap = 88;
+  var top = 126;
+  var height = top + nodes.length * rowGap + 44;
+  var group = activeTrajectoryGroup() || {};
+  var activeId = selectedTrajectoryId || (nodes[0] || {}).id || "";
+  var activeIndex = Math.max(0, nodes.findIndex(function(node) { return node.id === activeId; }));
+  var coverageEvidence = Number(group.evidence_count || (nodes[0] || {}).evidence_count || 0);
+  var definitions =
+    '<defs>' +
+      '<radialGradient id="coreGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#b8a5ff"></stop><stop offset="54%" stop-color="#765fe0"></stop><stop offset="100%" stop-color="#152321"></stop></radialGradient>' +
+      '<linearGradient id="compactStroke" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#d8b66f"></stop><stop offset="100%" stop-color="#65f0df"></stop></linearGradient>' +
+    '</defs>';
+  var hubTitle = labelLines(group.direction || "Research Trajectory", 28, 2).map(function(line, index) {
+    return '<text x="76" y="' + (44 + index * 15) + '" text-anchor="middle" fill="#f2f7f5" font-size="12" font-weight="700">' + esc(line) + '</text>';
+  }).join("");
+  var hub =
+    '<g>' +
+      '<circle cx="76" cy="84" r="45" fill="rgba(101,240,223,.035)" stroke="rgba(101,240,223,.16)"></circle>' +
+      '<circle cx="76" cy="84" r="23" fill="url(#coreGlow)" stroke="rgba(216,182,111,.35)"></circle>' +
+      hubTitle +
+      '<text x="76" y="142" text-anchor="middle" fill="#8da39e" font-size="10">' + esc(coverageEvidence || nodes.length) + ' evidence</text>' +
+    '</g>';
+  var rows = nodes.map(function(node, index) {
+    var y = top + index * rowGap;
+    var selected = activeId === node.id;
+    var color = storyColor(node.node_type || node.status || "");
+    var title = labelLines(node.title || node.type_label || "Node", 25, 2).join(" ");
+    var line = '<path class="trajectory-link' + (selected ? " trajectory-link-active" : "") + '" d="M 108 ' + (y + 32) + ' C 132 ' + (y + 32) + ', 132 ' + (y + 32) + ', 160 ' + (y + 32) + '" stroke="' + (selected ? "url(#compactStroke)" : "rgba(117,163,154,.34)") + '" stroke-width="' + (selected ? "2.2" : "1") + '" fill="none"></path>';
+    return line +
+      '<g class="trajectory-node" onclick="selectTrajectoryNode(\'' + jsq(node.id) + '\')" style="cursor:pointer">' +
+        (selected ? '<circle class="trajectory-selected-ring" cx="154" cy="' + (y + 32) + '" r="24" stroke="' + color + '"></circle>' : '') +
+        '<circle cx="154" cy="' + (y + 32) + '" r="5" fill="' + color + '" stroke="#d8b66f" stroke-width="1"></circle>' +
+        '<foreignObject x="168" y="' + y + '" width="168" height="74">' +
+          '<div xmlns="http://www.w3.org/1999/xhtml" class="trajectory-list-card' + (selected ? " selected" : "") + '">' +
+            '<div class="trajectory-label-type">' + esc(node.type_label || node.node_type || "Node") + '</div>' +
+            '<div class="trajectory-label-title">' + esc(title) + '</div>' +
+          '</div>' +
+        '</foreignObject>' +
+      '</g>';
+  }).join("");
+  var activeY = top + activeIndex * rowGap + 32;
+  var spine =
+    '<path class="trajectory-link trajectory-transition-spine" d="M 108 ' + (top + 32) + ' L 108 ' + (top + (nodes.length - 1) * rowGap + 32) + '" stroke="rgba(117,163,154,.34)" stroke-width="1.2" fill="none"></path>' +
+    '<path class="trajectory-link-active trajectory-active-spine" d="M 76 129 C 76 166, 108 176, 108 ' + activeY + '" stroke="url(#compactStroke)" stroke-width="1.7" fill="none"></path>';
+  container.innerHTML =
+    '<svg class="trajectory-svg trajectory-svg-compact" viewBox="0 0 ' + width + ' ' + height + '" style="min-height:' + height + 'px" role="img" aria-label="Compact trajectory map">' +
+      definitions +
+      '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="rgba(3,7,6,.22)"></rect>' +
+      '<text x="18" y="24" fill="#8aa09b" font-size="11">Trajectory intelligence</text>' +
+      hub +
+      spine +
+      rows +
+    '</svg>';
+}
+function storyColor(type) {
+  var key = String(type || "").toLowerCase();
+  if (key.indexOf("question") >= 0) return "#0ea5e9";
+  if (key.indexOf("hypothesis") >= 0) return "#d97706";
+  if (key.indexOf("turning") >= 0) return "#16a34a";
+  if (key.indexOf("shift") >= 0) return "#64748b";
+  if (key.indexOf("model") >= 0) return "#7c3aed";
+  if (key.indexOf("next") >= 0) return "#dc2626";
+  return "#64748b";
+}
+function labelLines(text, maxChars, maxLines) {
+  var words = String(text || "").split(/\s+/);
+  var lines = [];
+  var line = "";
+  words.forEach(function(word) {
+    var next = line ? line + " " + word : word;
+    if (next.length > maxChars && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = next;
+    }
+  });
+  if (line) lines.push(line);
+  if (lines.length > maxLines) {
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] = lines[maxLines - 1].replace(/\.*$/, "") + "...";
+  }
+  return lines;
+}
+function renderTrajectoryPanel() {
+  var group = activeTrajectoryGroup();
+  var nodes = group ? (group.nodes || []) : [];
+  var selected = nodes.find(function(node) { return node.id === selectedTrajectoryId; }) || nodes[0];
+  if (!selected) {
+    document.getElementById("trajectory-panel").innerHTML = "";
+    return;
+  }
+  var papers = selected.papers || [];
+  var concepts = selected.concepts || [];
+  var evidenceCount = Number(selected.evidence_count || 0);
+  var evidenceValue = evidenceCount || papers.length || 0;
+  var paperCount = Number(selected.paper_count || papers.length || 0);
+  var relatedCount = Number(selected.concept_count || concepts.length || (selected.related_trajectories || []).length || 0);
+  var evidenceUnit = evidenceValue === 1 ? "evidence point" : "evidence points";
+  var stateSummary = selected.summary || ("This node is supported by " + evidenceValue + " " + evidenceUnit + ", " + paperCount + " supporting papers and " + relatedCount + " related signals. Treat this as evidence coverage, not a confidence score.");
+  document.getElementById("trajectory-panel").innerHTML =
+    '<div class="card trajectory-detail-card">' +
+      '<div class="detail-eyebrow">' + esc(selected.type_label || selected.node_type || "Trajectory Node") + '</div>' +
+      '<h3 class="detail-title">' + esc(selected.title || "") + '</h3>' +
+      '<div class="detail-status"><div><span class="badge badge-green">Active</span><div class="process-meta">Selected from ' + esc((group || {}).direction || "current trajectory") + '</div></div><button class="nav-btn" onclick="openDbPaper(\'' + jsq((papers[0] || {}).doi || "") + '\')">Explore details</button></div>' +
+      '<div class="trajectory-state-card"><span class="detail-eyebrow">Evidence State</span><strong>' + esc(evidenceValue) + '</strong><span class="trajectory-state-unit">' + esc(evidenceUnit) + '</span><div class="process-meta">' + esc(stateSummary) + '</div></div>' +
+      '<div class="detail-metrics">' +
+        '<div class="detail-metric"><strong>' + esc(evidenceValue) + '</strong><span>Evidence points</span></div>' +
+        '<div class="detail-metric"><strong>' + esc(paperCount) + '</strong><span>Supporting papers</span></div>' +
+        '<div class="detail-metric"><strong>' + esc(relatedCount) + '</strong><span>Related signals</span></div>' +
+        '<div class="detail-metric"><strong>' + esc(selected.next_move ? 1 : 0) + '</strong><span>Queued action</span></div>' +
+      '</div>' +
+      '<div class="analysis-box"><div class="detail-eyebrow">RI Analysis</div><p><strong>Next move</strong></p><p>' + esc(selected.next_move || "Keep this trajectory under watch until more evidence arrives.") + '</p></div>' +
+      '<div class="support-list"><div class="detail-eyebrow">Supporting Papers</div>' + (papers.length ? papers.slice(0, 4).map(function(paper) {
+        return '<div class="support-paper" onclick="openDbPaper(\'' + jsq(paper.doi) + '\')"><strong>' + esc(paper.title) + '</strong><div class="paper-meta">' + esc(paper.journal || "") + '</div></div>';
+      }).join("") : '<div class="support-paper">No supporting papers attached.</div>') + '</div>' +
+    '</div>';
+}
+
+loadDashboard();
+scheduleTrajectoryPrefetch(true);
+</script>
+</body>
+</html>

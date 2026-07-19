@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>ScholarHound - Belief State</title>
+<style>
+:root {
+  --bg: #101311;
+  --surface: #171b18;
+  --surface-2: #1d221e;
+  --surface-3: #242a25;
+  --line: #343b35;
+  --line-strong: #4b554d;
+  --text: #f1f4ee;
+  --muted: #a7b0a8;
+  --faint: #747f76;
+  --green: #51c66a;
+  --green-bg: #102b16;
+  --blue: #69aef8;
+  --blue-bg: #0c2948;
+  --amber: #efad32;
+  --amber-bg: #352100;
+  --red: #f17a75;
+  --red-bg: #3b1113;
+  --cyan: #53d3c6;
+  --focus: #f7c75a;
+  --shadow: 0 18px 55px rgba(0, 0, 0, .28);
+}
+* { box-sizing: border-box; }
+html { min-width: 320px; background: var(--bg); }
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+}
+button, select { font: inherit; }
+button, a, select { -webkit-tap-highlight-color: transparent; }
+button { cursor: pointer; }
+a { color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--line);
+  background: rgba(16, 19, 17, .96);
+  backdrop-filter: blur(14px);
+}
+.topbar-inner {
+  width: min(1500px, 100%);
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 10px 20px;
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) auto minmax(230px, 1fr);
+  align-items: center;
+  gap: 20px;
+}
+.brand {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 1px solid var(--cyan);
+  background:
+    linear-gradient(90deg, transparent 47%, var(--cyan) 48%, var(--cyan) 52%, transparent 53%),
+    linear-gradient(0deg, transparent 47%, var(--amber) 48%, var(--amber) 52%, transparent 53%),
+    #121814;
+  box-shadow: inset 0 0 18px rgba(83, 211, 198, .17);
+}
+.brand-name {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+.brand-subtitle {
+  margin: 4px 0 0;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.nav-button,
+.review-link {
+  min-height: 34px;
+  border: 0;
+  border-radius: 5px;
+  padding: 7px 11px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.nav-button:hover,
+.review-link:hover { color: var(--text); background: var(--surface-3); }
+.nav-button.active { color: var(--text); background: #303831; }
+.review-link { display: inline-flex; align-items: center; gap: 6px; color: var(--amber); }
+.system-state {
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+.status-chip {
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); }
+.status-chip.live { border-color: rgba(81, 198, 106, .45); color: var(--green); }
+.status-chip.live .status-dot { background: var(--green); box-shadow: 0 0 0 3px rgba(81, 198, 106, .12); }
+
+.shell {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  padding: 22px 20px 44px;
+}
+.view { min-width: 0; }
+.context-bar {
+  min-height: 54px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.context-copy { min-width: 0; }
+.eyebrow {
+  margin: 0 0 5px;
+  color: var(--cyan);
+  font-size: 11px;
+  line-height: 1.1;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.context-title {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 900;
+}
+.context-meta { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.belief-picker-wrap { display: flex; align-items: center; gap: 9px; }
+.belief-picker-wrap label { color: var(--faint); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+.belief-picker {
+  width: min(360px, 48vw);
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 7px 34px 7px 10px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.belief-band {
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.belief-band-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+.belief-domain { margin: 0 0 13px; color: var(--muted); font-size: 13px; font-weight: 750; }
+.belief-domain strong { color: var(--text); }
+.belief-title {
+  max-width: 1120px;
+  margin: 0;
+  color: var(--text);
+  font-size: 30px;
+  line-height: 1.28;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+.signal-meter { width: 156px; flex: 0 0 156px; }
+.signal-number { display: block; font-size: 27px; line-height: 1; font-weight: 900; text-align: right; }
+.signal-label { display: block; margin-top: 6px; color: var(--muted); font-size: 10px; line-height: 1.3; font-weight: 800; text-align: right; text-transform: uppercase; }
+.meter-track { height: 5px; margin-top: 11px; overflow: hidden; border-radius: 3px; background: #2e3530; }
+.meter-fill { height: 100%; width: 0; background: var(--cyan); transition: width .25s ease; }
+.facet-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 22px; }
+.facet {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 6px 12px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+.facet.support { border-color: #176426; color: var(--green); background: var(--green-bg); }
+.facet.challenge { border-color: #77500c; color: var(--amber); background: var(--amber-bg); }
+.facet.pending { border-color: #16568c; color: var(--blue); background: var(--blue-bg); }
+.facet.neutral { color: var(--muted); background: var(--surface-2); }
+
+.evidence-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+.evidence-lane { min-width: 0; }
+.lane-heading {
+  min-height: 46px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lane-title { margin: 0; font-size: 17px; line-height: 1.25; font-weight: 900; }
+.lane-title.support { color: var(--green); }
+.lane-title.challenge { color: var(--amber); }
+.lane-title.pending { color: var(--blue); }
+.lane-copy { margin: 5px 0 0; color: var(--faint); font-size: 11px; line-height: 1.35; }
+.lane-count {
+  min-width: 28px;
+  min-height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 900;
+}
+.evidence-list { display: grid; gap: 12px; }
+.evidence-card {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-left-width: 5px;
+  border-radius: 0 6px 6px 0;
+  padding: 15px 15px 14px;
+  background: var(--surface);
+}
+.evidence-card.support { border-left-color: #17842e; background: #122416; }
+.evidence-card.challenge { border-left-color: #a16806; background: #2b1b05; }
+.evidence-card.pending { border-left-color: #2878bd; background: #10243a; }
+.evidence-type { margin: 0 0 8px; color: var(--faint); font-size: 10px; font-weight: 900; text-transform: uppercase; }
+.evidence-title { margin: 0; font-size: 16px; line-height: 1.32; font-weight: 900; overflow-wrap: anywhere; }
+.evidence-summary { margin: 9px 0 0; color: #c7cec7; font-size: 13px; line-height: 1.5; }
+.evidence-footer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--faint);
+  font-size: 10px;
+  line-height: 1.35;
+}
+.evidence-source { overflow-wrap: anywhere; }
+.source-link { color: var(--cyan); text-decoration: none; }
+.source-link:hover { text-decoration: underline; }
+.empty-lane {
+  min-height: 120px;
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  color: var(--faint);
+  background: rgba(255, 255, 255, .015);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.judgment-band {
+  margin-top: 22px;
+  border: 1px solid #8e292d;
+  border-radius: 8px;
+  padding: 19px 22px;
+  background: var(--red-bg);
+}
+.judgment-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.judgment-title { margin: 0; color: var(--red); font-size: 18px; line-height: 1.3; font-weight: 900; }
+.judgment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 15px; }
+.boundary-label { margin: 0 0 6px; color: #d98c88; font-size: 10px; font-weight: 900; text-transform: uppercase; }
+.boundary-copy { margin: 0; color: #e2c7c5; font-size: 13px; line-height: 1.5; }
+.boundary-copy + .boundary-copy { margin-top: 8px; }
+.action-link {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #ad4245;
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: #ffd2cf;
+  background: #561a1d;
+  font-size: 11px;
+  font-weight: 900;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.action-link:hover { background: #6a2024; }
+
+.provenance-line {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--faint);
+  font-size: 11px;
+  font-weight: 750;
+}
+.provenance-line span:last-child { text-align: right; }
+
+.ledger-toolbar {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.segmented { display: flex; flex-wrap: wrap; gap: 5px; }
+.filter-button {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 850;
+}
+.filter-button.active { border-color: var(--cyan); color: var(--cyan); background: #122725; }
+.ledger-list { display: grid; gap: 10px; }
+.ledger-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 116px minmax(210px, .85fr) minmax(280px, 1.4fr) 170px;
+  gap: 16px;
+  align-items: start;
+  border-bottom: 1px solid var(--line);
+  padding: 15px 10px;
+}
+.ledger-relation { font-size: 11px; font-weight: 900; text-transform: uppercase; }
+.ledger-relation.support { color: var(--green); }
+.ledger-relation.challenge { color: var(--amber); }
+.ledger-relation.pending, .ledger-relation.contest { color: var(--blue); }
+.ledger-relation.neutral { color: var(--muted); }
+.ledger-name { font-size: 13px; line-height: 1.4; font-weight: 850; }
+.ledger-summary { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.ledger-source { color: var(--faint); font-size: 10px; line-height: 1.45; overflow-wrap: anywhere; }
+
+.revision-layout { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, .6fr); gap: 18px; }
+.revision-list { border-top: 1px solid var(--line); }
+.revision-row {
+  position: relative;
+  min-height: 104px;
+  padding: 18px 12px 18px 54px;
+  border-bottom: 1px solid var(--line);
+}
+.revision-row::before {
+  content: "";
+  position: absolute;
+  left: 22px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line-strong);
+}
+.revision-node {
+  position: absolute;
+  left: 15px;
+  top: 22px;
+  width: 15px;
+  height: 15px;
+  border: 3px solid var(--bg);
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 0 1px var(--cyan);
+}
+.revision-top { display: flex; align-items: baseline; justify-content: space-between; gap: 15px; }
+.revision-action { color: var(--cyan); font-size: 11px; font-weight: 900; text-transform: uppercase; }
+.revision-date { color: var(--faint); font-size: 10px; }
+.revision-reason { margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.revision-delta { margin-top: 10px; color: var(--text); font-size: 11px; font-weight: 800; }
+.scope-panel {
+  position: sticky;
+  top: 92px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 17px;
+  background: var(--surface);
+}
+.scope-panel h3 { margin: 0; font-size: 14px; }
+.scope-panel p { margin: 9px 0 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.scope-list { margin: 15px 0 0; padding: 0; list-style: none; }
+.scope-list li { padding: 10px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.4; }
+.scope-list strong { display: block; margin-bottom: 3px; color: var(--text); }
+
+.loading {
+  min-height: 520px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  background: var(--surface);
+  text-align: center;
+}
+.loading-mark {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 15px;
+  border: 2px solid var(--line-strong);
+  border-top-color: var(--cyan);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.error-panel { color: var(--red); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1060px) {
+  .topbar-inner { grid-template-columns: 1fr auto; }
+  .nav { grid-row: 2; grid-column: 1 / -1; justify-self: stretch; overflow-x: auto; }
+  .nav-button, .review-link { flex: 1 0 auto; text-align: center; justify-content: center; }
+  .evidence-board { grid-template-columns: 1fr 1fr; }
+  .evidence-lane:last-child { grid-column: 1 / -1; }
+  .ledger-row { grid-template-columns: 100px minmax(180px, .8fr) minmax(260px, 1.2fr); }
+  .ledger-source { grid-column: 2 / -1; }
+}
+@media (max-width: 760px) {
+  .topbar-inner { padding: 10px 12px; gap: 10px; }
+  .system-state .status-chip:first-child { display: none; }
+  .shell { padding: 15px 12px 32px; }
+  .context-bar, .belief-band-top, .judgment-heading, .ledger-toolbar { align-items: stretch; flex-direction: column; }
+  .belief-picker-wrap { width: 100%; align-items: stretch; flex-direction: column; }
+  .belief-picker { width: 100%; }
+  .belief-band { padding: 18px 16px; }
+  .belief-title { font-size: 23px; }
+  .signal-meter { width: 100%; display: grid; grid-template-columns: auto 1fr; gap: 9px 13px; align-items: end; }
+  .signal-number, .signal-label { text-align: left; }
+  .meter-track { grid-column: 1 / -1; margin-top: 0; }
+  .evidence-board { grid-template-columns: 1fr; gap: 18px; }
+  .evidence-lane:last-child { grid-column: auto; }
+  .judgment-grid, .revision-layout { grid-template-columns: 1fr; }
+  .action-link { justify-content: center; }
+  .provenance-line { align-items: flex-start; flex-direction: column; }
+  .provenance-line span:last-child { text-align: left; }
+  .ledger-row { grid-template-columns: 92px 1fr; gap: 9px 12px; padding-left: 3px; padding-right: 3px; }
+  .ledger-summary, .ledger-source { grid-column: 2; }
+  .scope-panel { position: static; }
+}
+@media (max-width: 480px) {
+  .brand-subtitle { display: none; }
+  .system-state { display: none; }
+  .topbar-inner { grid-template-columns: 1fr; }
+  .nav { grid-column: 1; overflow: hidden; }
+  .nav-button,
+  .review-link {
+    min-width: 0;
+    min-height: 42px;
+    flex: 1 1 0;
+    padding: 5px 3px;
+    font-size: 10px;
+    line-height: 1.15;
+    white-space: normal;
+  }
+  .facet { width: 100%; border-radius: 6px; }
+  .judgment-band { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <div>
+        <p class="brand-name">ScholarHound</p>
+        <p class="brand-subtitle">Accountable literature state</p>
+      </div>
+    </div>
+    <nav class="nav" aria-label="ScholarHound sections">
+      <button class="nav-button active" type="button" data-view="beliefs">Belief state</button>
+      <button class="nav-button" type="button" data-view="evidence">Evidence ledger</button>
+      <button class="nav-button" type="button" data-view="revisions">Revision history</button>
+      <a class="review-link" href="/review">Expert review <span aria-hidden="true">&#8599;</span></a>
+    </nav>
+    <div class="system-state">
+      <span class="status-chip" id="kernel-version">Kernel --</span>
+      <span class="status-chip" id="live-chip"><span class="status-dot"></span><span id="live-label">Connecting</span></span>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="loading" id="loading-panel" aria-live="polite">
+    <div><div class="loading-mark" aria-hidden="true"></div><strong>Loading persistent research state</strong></div>
+  </div>
+
+  <section class="view" id="beliefs-view" hidden>
+    <div class="context-bar">
+      <div class="context-copy">
+        <p class="eyebrow">Persistent belief kernel</p>
+        <h1 class="context-title">What the literature currently licenses</h1>
+        <p class="context-meta" id="belief-context-meta">State is projected from append-only revisions.</p>
+      </div>
+      <div class="belief-picker-wrap">
+        <label for="belief-picker">Active belief</label>
+        <select class="belief-picker" id="belief-picker"></select>
+      </div>
+    </div>
+
+    <article class="belief-band">
+      <div class="belief-band-top">
+        <div>
+          <p class="belief-domain" id="belief-domain">belief</p>
+          <h2 class="belief-title" id="belief-title">--</h2>
+        </div>
+        <div class="signal-meter" aria-label="Literature signal confidence">
+          <span class="signal-number" id="signal-number">--</span>
+          <span class="signal-label">Literature signal<br>not probability of truth</span>
+          <div class="meter-track" aria-hidden="true"><div class="meter-fill" id="meter-fill"></div></div>
+        </div>
+      </div>
+      <div class="facet-row" id="facet-row"></div>
+    </article>
+
+    <section class="evidence-board" aria-label="Evidence by relation">
+      <div class="evidence-lane">
+        <div class="lane-heading">
+          <div><h3 class="lane-title support">Supports current state</h3><p class="lane-copy">Evidence the kernel records in the same direction.</p></div>
+          <span class="lane-count" id="support-count">0</span>
+        </div>
+        <div class="evidence-list" id="support-list"></div>
+      </div>
+      <div class="evidence-lane">
+        <div class="lane-heading">
+          <div><h3 class="lane-title challenge">Applies pressure</h3><p class="lane-copy">Counter-evidence, rival frames and scope limits.</p></div>
+          <span class="lane-count" id="challenge-count">0</span>
+        </div>
+        <div class="evidence-list" id="challenge-list"></div>
+      </div>
+      <div class="evidence-lane">
+        <div class="lane-heading">
+          <div><h3 class="lane-title pending">Unresolved boundary</h3><p class="lane-copy">Contested or underdetermined evidence is not silently committed.</p></div>
+          <span class="lane-count" id="pending-count">0</span>
+        </div>
+        <div class="evidence-list" id="pending-list"></div>
+      </div>
+    </section>
+
+    <section class="judgment-band" aria-label="Human judgment boundary">
+      <div class="judgment-heading">
+        <h3 class="judgment-title">Flagged for your judgment - the kernel does not decide these</h3>
+        <a class="action-link" href="/review">Open expert review</a>
+      </div>
+      <div class="judgment-grid">
+        <div>
+          <p class="boundary-label">Open scope question</p>
+          <div id="belief-questions"></div>
+        </div>
+        <div>
+          <p class="boundary-label">Review queue</p>
+          <div id="review-requests"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="provenance-line">
+      <span id="provenance-left">Provenance on every node</span>
+      <span id="provenance-right">--</span>
+    </div>
+  </section>
+
+  <section class="view" id="evidence-view" hidden>
+    <div class="context-bar">
+      <div class="context-copy">
+        <p class="eyebrow">Source-to-state trace</p>
+        <h1 class="context-title">Evidence ledger</h1>
+        <p class="context-meta">Every relation remains attached to its source and current belief.</p>
+      </div>
+    </div>
+    <div class="ledger-toolbar">
+      <div class="segmented" id="evidence-filters" aria-label="Filter evidence relations">
+        <button class="filter-button active" type="button" data-filter="all">All</button>
+        <button class="filter-button" type="button" data-filter="support">Support</button>
+        <button class="filter-button" type="button" data-filter="challenge">Pressure</button>
+        <button class="filter-button" type="button" data-filter="unresolved">Unresolved</button>
+      </div>
+      <span class="status-chip" id="ledger-total">0 records</span>
+    </div>
+    <div class="ledger-list" id="ledger-list"></div>
+  </section>
+
+  <section class="view" id="revisions-view" hidden>
+    <div class="context-bar">
+      <div class="context-copy">
+        <p class="eyebrow">Append-only state movement</p>
+        <h1 class="context-title">Revision history</h1>
+        <p class="context-meta">Current belief state is a projection of this chain, never an overwritten answer.</p>
+      </div>
+    </div>
+    <div class="revision-layout">
+      <div class="revision-list" id="revision-list"></div>
+      <aside class="scope-panel">
+        <h3>What this confidence means</h3>
+        <p id="scope-semantics">It measures strength and consistency of the visible literature signal, not the probability that a scientific claim is true.</p>
+        <ul class="scope-list">
+          <li><strong>LLM proposes</strong>Relation judgments are explicit and provenance-tagged.</li>
+          <li><strong>Kernel constrains</strong>Rules control what can become persistent state.</li>
+          <li><strong>Human authorizes</strong>Contested calls and research direction stay with the researcher.</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script>
+"use strict";
+
+var state = {
+  data: null,
+  beliefIndex: 0,
+  view: "beliefs",
+  evidenceFilter: "all"
+};
+
+function esc(value) {
+  return String(value == null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function clamp(value, min, max) {
+  var number = Number(value);
+  if (!Number.isFinite(number)) number = min;
+  return Math.max(min, Math.min(max, number));
+}
+
+function formatDate(value) {
+  if (!value) return "date unavailable";
+  var date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value).slice(0, 10);
+  return new Intl.DateTimeFormat("en-AU", {year: "numeric", month: "short", day: "2-digit"}).format(date);
+}
+
+function sourceMarkup(item) {
+  var ref = String(item.source_ref || "source unavailable");
+  var href = "";
+  if (/^doi:/i.test(ref)) href = "https://doi.org/" + ref.replace(/^doi:/i, "");
+  else if (/^10\.\d{4,9}\//.test(ref)) href = "https://doi.org/" + ref;
+  else if (/^https?:\/\//i.test(ref)) href = ref;
+  if (!href) return '<span class="evidence-source">' + esc(ref) + '</span>';
+  return '<a class="source-link evidence-source" href="' + esc(href) + '" target="_blank" rel="noopener">' + esc(ref) + '</a>';
+}
+
+function evidenceCard(item, relation) {
+  var type = [item.source_type || "source", item.strength || "strength unknown"].join(" / ");
+  return '<article class="evidence-card ' + esc(relation) + '">' +
+    '<p class="evidence-type">' + esc(type) + '</p>' +
+    '<h4 class="evidence-title">' + esc(item.title || "Untitled evidence") + '</h4>' +
+    '<p class="evidence-summary">' + esc(item.summary || "No summary recorded.") + '</p>' +
+    '<div class="evidence-footer"><span>' + esc(item.reliability || "Reliability note not recorded") + '</span>' + sourceMarkup(item) + '</div>' +
+  '</article>';
+}
+
+function emptyLane(message) {
+  return '<div class="empty-lane">' + esc(message) + '</div>';
+}
+
+function currentBelief() {
+  var beliefs = state.data && state.data.beliefs ? state.data.beliefs : [];
+  return beliefs[state.beliefIndex] || null;
+}
+
+function unresolvedEvidence(belief) {
+  return (belief.evidence.contest || []).concat(belief.evidence.pending || []);
+}
+
+function renderBeliefPicker() {
+  var picker = document.getElementById("belief-picker");
+  picker.innerHTML = state.data.beliefs.map(function(belief, index) {
+    return '<option value="' + index + '">' + esc(belief.display_id + " - " + belief.title) + '</option>';
+  }).join("");
+  picker.value = String(state.beliefIndex);
+}
+
+function renderBelief() {
+  var belief = currentBelief();
+  if (!belief) return;
+  var support = belief.evidence.support || [];
+  var challenge = belief.evidence.challenge || [];
+  var unresolved = unresolvedEvidence(belief);
+  var confidence = clamp(belief.confidence, 0, 1);
+  var percent = Math.round(confidence * 100);
+
+  document.getElementById("belief-domain").innerHTML = '<strong>' + esc(belief.display_id) + '</strong> &nbsp; ' + esc(belief.domain || "unscoped domain");
+  document.getElementById("belief-title").textContent = belief.title || belief.claim || "Untitled belief";
+  document.getElementById("signal-number").textContent = percent + "%";
+  document.getElementById("meter-fill").style.width = percent + "%";
+  document.getElementById("support-count").textContent = support.length;
+  document.getElementById("challenge-count").textContent = challenge.length;
+  document.getElementById("pending-count").textContent = unresolved.length;
+  document.getElementById("support-list").innerHTML = support.length ? support.map(function(item) { return evidenceCard(item, "support"); }).join("") : emptyLane("No supporting evidence has been committed to this belief.");
+  document.getElementById("challenge-list").innerHTML = challenge.length ? challenge.map(function(item) { return evidenceCard(item, "challenge"); }).join("") : emptyLane("No counter-evidence is currently attached.");
+  document.getElementById("pending-list").innerHTML = unresolved.length ? unresolved.map(function(item) { return evidenceCard(item, "pending"); }).join("") : emptyLane("No evidence is currently parked as contested or underdetermined. Open scope questions remain visible below.");
+
+  var facets = [
+    '<span class="facet support">' + support.length + ' supporting source' + (support.length === 1 ? '' : 's') + ' - recorded</span>',
+    '<span class="facet challenge">' + challenge.length + ' counter-signal' + (challenge.length === 1 ? '' : 's') + ' - under pressure</span>',
+    '<span class="facet pending">' + unresolved.length + ' unresolved - human boundary</span>',
+    '<span class="facet neutral">' + (belief.revision_history || []).length + ' append-only revision' + ((belief.revision_history || []).length === 1 ? '' : 's') + '</span>'
+  ];
+  document.getElementById("facet-row").innerHTML = facets.join("");
+
+  var questions = belief.questions || [];
+  document.getElementById("belief-questions").innerHTML = questions.length
+    ? questions.map(function(question) { return '<p class="boundary-copy">' + esc(question) + '</p>'; }).join("")
+    : '<p class="boundary-copy">No explicit scope question is linked to this belief.</p>';
+
+  var reviews = state.data.review_requests || [];
+  document.getElementById("review-requests").innerHTML = reviews.length
+    ? reviews.slice(0, 3).map(function(item) {
+        return '<p class="boundary-copy"><strong>' + esc(item.belief_ref || "Unlinked review") + ':</strong> ' + esc(item.question || item.request_type || "Review requested") + '</p>';
+      }).join("")
+    : '<p class="boundary-copy">No open human review request is currently queued.</p>';
+
+  var provenance = belief.provenance || {};
+  var source = provenance.corpus || provenance.source || "V3 kernel";
+  document.getElementById("provenance-left").textContent = "provenance on every node / state set by kernel + human review";
+  document.getElementById("provenance-right").textContent = "updated " + formatDate(belief.updated_at) + " / " + support.length + " support / " + challenge.length + " pressure / " + source;
+  document.getElementById("belief-context-meta").textContent = state.data.counts.beliefs + " beliefs / " + state.data.counts.evidence + " evidence records / " + state.data.counts.revisions + " revisions";
+}
+
+function allEvidenceRows() {
+  var rows = [];
+  (state.data.beliefs || []).forEach(function(belief) {
+    ["support", "challenge", "contest", "pending", "neutral"].forEach(function(relation) {
+      (belief.evidence[relation] || []).forEach(function(item) {
+        rows.push({belief: belief, relation: relation, item: item});
+      });
+    });
+  });
+  return rows;
+}
+
+function renderLedger() {
+  var rows = allEvidenceRows();
+  var filter = state.evidenceFilter;
+  if (filter === "support") rows = rows.filter(function(row) { return row.relation === "support"; });
+  if (filter === "challenge") rows = rows.filter(function(row) { return row.relation === "challenge"; });
+  if (filter === "unresolved") rows = rows.filter(function(row) { return row.relation === "contest" || row.relation === "pending"; });
+  document.getElementById("ledger-total").textContent = rows.length + " record" + (rows.length === 1 ? "" : "s");
+  document.getElementById("ledger-list").innerHTML = rows.length ? rows.map(function(row) {
+    return '<article class="ledger-row">' +
+      '<div class="ledger-relation ' + esc(row.relation) + '">' + esc(row.relation === "challenge" ? "pressure" : row.relation) + '</div>' +
+      '<div class="ledger-name">' + esc(row.item.title || "Untitled evidence") + '<br><span class="context-meta">' + esc(row.belief.display_id) + '</span></div>' +
+      '<div class="ledger-summary">' + esc(row.item.summary || "No summary recorded.") + '</div>' +
+      '<div class="ledger-source">' + sourceMarkup(row.item) + '<br>' + esc(row.item.strength || "unknown strength") + '</div>' +
+    '</article>';
+  }).join("") : emptyLane("No evidence records match this filter.");
+}
+
+function allRevisionRows() {
+  var rows = [];
+  (state.data.beliefs || []).forEach(function(belief) {
+    (belief.revision_history || []).forEach(function(revision) {
+      rows.push({belief: belief, revision: revision});
+    });
+  });
+  rows.sort(function(a, b) { return String(b.revision.created_at || "").localeCompare(String(a.revision.created_at || "")); });
+  return rows;
+}
+
+function confidenceLabel(value) {
+  if (value == null) return "not set";
+  return Math.round(Number(value) * 100) + "%";
+}
+
+function renderRevisions() {
+  var rows = allRevisionRows();
+  document.getElementById("revision-list").innerHTML = rows.length ? rows.map(function(row) {
+    var revision = row.revision;
+    var delta = "signal " + confidenceLabel(revision.old_confidence) + " -> " + confidenceLabel(revision.new_confidence);
+    return '<article class="revision-row">' +
+      '<span class="revision-node" aria-hidden="true"></span>' +
+      '<div class="revision-top"><span class="revision-action">' + esc(revision.action || "revision") + ' / ' + esc(row.belief.display_id) + '</span><span class="revision-date">' + esc(formatDate(revision.created_at)) + '</span></div>' +
+      '<p class="revision-reason">' + esc(revision.reason || "No revision reason recorded.") + '</p>' +
+      '<div class="revision-delta">' + esc(delta) + ' / evidence ' + esc((revision.triggering_evidence_ids || []).length) + '</div>' +
+    '</article>';
+  }).join("") : emptyLane("No belief revisions are available.");
+  document.getElementById("scope-semantics").textContent = state.data.semantics || "Literature state, not probability of scientific truth.";
+}
+
+function switchView(view) {
+  state.view = view;
+  ["beliefs", "evidence", "revisions"].forEach(function(name) {
+    document.getElementById(name + "-view").hidden = name !== view;
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-view]"), function(button) {
+    button.classList.toggle("active", button.getAttribute("data-view") === view);
+  });
+  if (view === "evidence") renderLedger();
+  if (view === "revisions") renderRevisions();
+  if (history.replaceState) history.replaceState(null, "", "#" + view);
+}
+
+function bindEvents() {
+  document.getElementById("belief-picker").addEventListener("change", function(event) {
+    state.beliefIndex = Number(event.target.value) || 0;
+    renderBelief();
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-view]"), function(button) {
+    button.addEventListener("click", function() { switchView(button.getAttribute("data-view")); });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function(button) {
+    button.addEventListener("click", function() {
+      state.evidenceFilter = button.getAttribute("data-filter");
+      Array.prototype.forEach.call(document.querySelectorAll("[data-filter]"), function(item) {
+        item.classList.toggle("active", item === button);
+      });
+      renderLedger();
+    });
+  });
+}
+
+async function loadBeliefMap() {
+  try {
+    var response = await fetch("/api/kernel/v3/belief-map", {
+      credentials: "same-origin",
+      cache: "no-store",
+      headers: {"Accept": "application/json"}
+    });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    var data = await response.json();
+    if (!data.beliefs || !data.beliefs.length) throw new Error("No beliefs are available in the V3 kernel.");
+    state.data = data;
+    document.getElementById("loading-panel").hidden = true;
+    document.getElementById("kernel-version").textContent = "Kernel " + (data.kernel_version || "V3");
+    document.getElementById("live-chip").classList.add("live");
+    document.getElementById("live-label").textContent = "State connected";
+    renderBeliefPicker();
+    renderBelief();
+    renderLedger();
+    renderRevisions();
+    var initial = String(location.hash || "").replace("#", "");
+    if (["beliefs", "evidence", "revisions"].indexOf(initial) < 0) initial = "beliefs";
+    switchView(initial);
+  } catch (error) {
+    document.getElementById("loading-panel").innerHTML = '<div class="error-panel"><strong>Research state unavailable</strong><br><span>' + esc(error.message || error) + '</span></div>';
+    document.getElementById("live-label").textContent = "State unavailable";
+  }
+}
+
+bindEvents();
+loadBeliefMap();
+</script>
+</body>
+</html>

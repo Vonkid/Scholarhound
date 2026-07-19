@@ -1,0 +1,92 @@
+llm:
+  provider: deepseek
+  api_key: ${SCHOLARHOUND_API_KEY}
+  model: deepseek-chat
+  base_url: https://api.deepseek.com/v1
+
+vault_path: ./data/vault
+
+journals:
+  - name: Nature
+    issn: 0028-0836
+  - name: Nature Materials
+    rss: https://www.nature.com/nmat.rss
+    issn: 1476-1122
+  - name: Nature Nanotechnology
+    rss: https://www.nature.com/nnano.rss
+    issn: 1748-3387
+  - name: Nature Biotechnology
+    rss: https://www.nature.com/nbt.rss
+    issn: 1087-0156
+  - name: Nature Photonics
+    rss: https://www.nature.com/nphoton.rss
+    issn: 1749-4885
+  - name: Nature Chemistry
+    rss: https://www.nature.com/nchem.rss
+    issn: 1755-4330
+  - name: Nature Biomedical Engineering
+    rss: https://www.nature.com/natbiomedeng.rss
+    issn: 2157-846X
+  - name: Nature Electronics
+    rss: https://www.nature.com/natelectron.rss
+    issn: 2520-1131
+  - name: Science
+    issn: 0036-8075
+  - name: Science Advances
+    issn: 2375-2548
+  - name: Science Translational Medicine
+    issn: 1946-6234
+  - name: JACS
+    issn: 0002-7863
+  - name: ACS Nano
+    issn: 1936-0851
+  - name: Nano Letters
+    issn: 1530-6984
+  - name: ACS Applied Materials & Interfaces
+    issn: 1944-8244
+  - name: Advanced Materials
+    issn: 1521-4095
+  - name: Advanced Functional Materials
+    issn: 1616-3028
+  - name: Angewandte Chemie
+    issn: 1433-7851
+  - name: Chemical Society Reviews
+    issn: 0306-0012
+  # Cell Press (Cloudflare blocks RSS; via Crossref ISSN only)
+  - name: Cell
+    issn: 0092-8674
+  - name: Cell Reports Medicine
+    issn: 2666-3791
+  - name: Cell Stem Cell
+    issn: 1934-5909
+  - name: Neuron
+    issn: 0896-6273
+  - name: Cell Chemical Biology
+    issn: 2451-9456
+  - name: Molecular Cell
+    issn: 1097-2765
+  - name: Cell Systems
+    issn: 2405-4712
+  - name: Developmental Cell
+    issn: 1534-5807
+  - name: Med
+    issn: 2666-6340
+  - name: Chem
+    issn: 2451-9294
+  - name: Nature Communications
+    rss: https://www.nature.com/ncomms.rss
+    issn: 2041-1723
+  - name: Biosensors and Bioelectronics
+    issn: 0956-5663
+  - name: ACS Sensors
+    issn: 2379-3694
+  - name: Analytical Chemistry
+    issn: 0003-2700
+
+prefilter_threshold: 2
+
+schedule:
+  mode: weekly
+  time: "07:00"
+
+# notify: disabled — using scholarhound.academy instead
