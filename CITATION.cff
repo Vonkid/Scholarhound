@@ -5,7 +5,7 @@ type: software
 version: 0.1.0
 date-released: 2026-07-19
 license: MIT
-repository-code: "https://github.com/Vonkid/ScholarHound"
+repository-code: "https://github.com/Vonkid/Scholarhound"
 url: "https://scholarhound.academy/"
 authors:
   - name: "Vonkid"

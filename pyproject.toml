@@ -40,8 +40,8 @@ dev = ["pytest>=8.0", "ruff>=0.5"]
 
 [project.urls]
 Homepage = "https://scholarhound.academy/"
-Repository = "https://github.com/Vonkid/ScholarHound"
-Issues = "https://github.com/Vonkid/ScholarHound/issues"
+Repository = "https://github.com/Vonkid/Scholarhound"
+Issues = "https://github.com/Vonkid/Scholarhound/issues"
 
 [project.scripts]
 scholarhound = "psil.cli:main"
