@@ -799,7 +799,7 @@ def run_v3_intake_ablation(
 ) -> dict[str, Any]:
     if kernel_dir is None:
         kernel_dir = (
-            Path(tempfile.mkdtemp(prefix="scholarhound_v3_intake_", dir="/private/tmp"))
+            Path(tempfile.mkdtemp(prefix="scholarhound_v3_intake_"))
             / "kernel"
             / "v3"
         )
@@ -985,7 +985,7 @@ def run_v3_legacy_digest_backfill(
     """Dry-run legacy digests through V3 rules without touching durable kernel state."""
     if kernel_dir is None:
         kernel_dir = (
-            Path(tempfile.mkdtemp(prefix="scholarhound_v3_backfill_", dir="/private/tmp"))
+            Path(tempfile.mkdtemp(prefix="scholarhound_v3_backfill_"))
             / "kernel"
             / "v3"
         )
@@ -1218,7 +1218,7 @@ def run_v3_review_smoke(
 ) -> dict[str, Any]:
     if kernel_dir is None:
         kernel_dir = (
-            Path(tempfile.mkdtemp(prefix="scholarhound_v3_review_", dir="/private/tmp"))
+            Path(tempfile.mkdtemp(prefix="scholarhound_v3_review_"))
             / "kernel"
             / "v3"
         )
